@@ -113,6 +113,7 @@ catkin_package(
 ## Your package locations should be listed before other locations
 # include_directories(include)
 include_directories(
+        include/semantic_bgkoctomap
         include/gpoctomap
         include/bgkoctomap
         include/common
@@ -128,6 +129,14 @@ include_directories(
 # Common source files
 set(COMMON_SOURCE_FILES src/common/point3f)
 
+# Files for SEMANTIC BGK source
+set(SEMANTIC_BGK_SOURCE_FILES
+    src/semantic_bgkoctomap/semantic_bgkblock.cpp
+    src/semantic_bgkoctomap/semantic_bgkoctomap.cpp
+    src/semantic_bgkoctomap/semantic_bgkoctree_node.cpp
+    src/semantic_bgkoctomap/semantic_bgkoctree.cpp)
+
+
 # Files for BGK source
 set(BGK_SOURCE_FILES
     src/bgkoctomap/bgkblock.cpp
@@ -142,6 +151,13 @@ set(GP_SOURCE_FILES
         src/gpoctomap/gpoctomap.cpp
         src/gpoctomap/gpoctree_node.cpp
         src/gpoctomap/gpoctree.cpp
+)
+
+
+add_executable(semantic_bgkoctomap_static_node 
+  ${SEMANTIC_BGK_SOURCE_FILES}
+    ${COMMON_SOURCE_FILES}
+    src/semantic_bgkoctomap/semantic_bgkoctomap_static_node.cpp
 )
 
 add_executable(bgkoctomap_static_node 
@@ -176,6 +192,11 @@ add_executable(gpoctomap_server
 # add_dependencies(BGKOctoMap_node BGKOctoMap_generate_messages_cpp)
 
 ## Specify libraries to link a library or executable target against
+
+target_link_libraries(semantic_bgkoctomap_static_node
+        ${catkin_LIBRARIES}
+)
+
 target_link_libraries(bgkoctomap_static_node
         ${catkin_LIBRARIES}
 )
