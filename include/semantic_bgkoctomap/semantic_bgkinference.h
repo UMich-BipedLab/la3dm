@@ -20,7 +20,9 @@ namespace la3dm {
         using MatrixDKType = Eigen::Matrix<T, -1, 1>;
         using MatrixYType = Eigen::Matrix<T, -1, 1>;
 
-        SemanticBGKInference(T sf2, T ell) : sf2(sf2), ell(ell), trained(false) { }
+        SemanticBGKInference(T sf2, T ell) : sf2(sf2), ell(ell), trained(false) {
+          ybars_.resize(3);
+        }
 
         /*
          * @brief Fit BGK Model
@@ -31,6 +33,7 @@ namespace la3dm {
             assert(x.size() % dim == 0 && (int) (x.size() / dim) == y.size());
             MatrixXType _x = Eigen::Map<const MatrixXType>(x.data(), x.size() / dim, dim);
             MatrixYType _y = Eigen::Map<const MatrixYType>(y.data(), y.size(), 1);
+            this->y_vec = y;
             train(_x, _y);
         }
 
@@ -45,6 +48,7 @@ namespace la3dm {
             trained = true;
         }
 
+        
         /*
          * @brief Predict with BGK Model
          * @param xs input vector (3M, row major)
@@ -85,6 +89,15 @@ namespace la3dm {
           bbar = (Ks * (ones-y)).array();
           //kbar = Ks.rowwise().sum().array();
         
+        }
+
+        void predict(const std::vector<T> &xs, std::vector<T>& ybars) {
+
+          assert(trained == true);
+          for (int i = 0; i < ybars_.size(); ++i) {
+            ybars_[i] = std::count (y_vec.begin(), y_vec.end(), i);
+          }
+          ybars = ybars_;
         }
 
     private:
@@ -143,6 +156,8 @@ namespace la3dm {
 
         MatrixXType x;   // temporary storage of training data
         MatrixYType y;   // temporary storage of training labels
+        std::vector<T> y_vec;
+        std::vector<T> ybars_;
 
         bool trained;    // true if bgkinference stored training data
     };

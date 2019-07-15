@@ -212,20 +212,24 @@ namespace la3dm {
             if (bgk == bgk_arr.end())
               continue;
 
-            vector<float> abar, bbar;
-            bgk->second->predict(xs, abar, bbar);
+            //vector<float> abar, bbar;
+            vector<float> ybars;
+            //bgk->second->predict(xs, abar, bbar);
+            bgk->second->predict(xs, ybars);
 
             int j = 0;
             for (auto leaf_it = block->begin_leaf(); leaf_it != block->end_leaf(); ++leaf_it, ++j) {
                 SemanticOcTreeNode &node = leaf_it.get_node();
-                auto node_loc = block->get_loc(leaf_it);
-                if (node_loc.x() == 7.45 && node_loc.y() == 10.15 && node_loc.z() == 1.15) {
-                    std::cout << "updating the node " << abar[j] << " " << bbar[j] << std::endl;
-                }
+                //auto node_loc = block->get_loc(leaf_it);
+                //if (node_loc.x() == 7.45 && node_loc.y() == 10.15 && node_loc.z() == 1.15) {
+                  //  std::cout << "updating the node " << abar[j] << " " << bbar[j] << std::endl;
+               // }
 
                 // Only need to update if kernel density total kernel density est > 0
-                if (abar[j] + bbar[j] > 0.0)
-                    node.update(abar[j], bbar[j]);
+                //if (abar[j] + bbar[j] > 0.0)
+                    //node.update(abar[j], bbar[j]);
+                node.update(ybars);
+                std::cout << "j: " << j << std::endl;
             }
 
         }

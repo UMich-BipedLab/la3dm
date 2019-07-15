@@ -40,7 +40,13 @@ namespace la3dm {
 
     void Occupancy::update(std::vector<float>& ybars) {
       classified = true;
-    
+      for (int i = 0; i < ybars.size(); ++i)
+        m_[i] += ybars[i];
+
+      std::vector<float> probs = get_probs();
+      float p = 1 - probs[0];
+      state = p > Occupancy::occupied_thresh ? State::OCCUPIED : (p < Occupancy::free_thresh ? State::FREE
+                                                                                             : State::UNKNOWN);
     }
 
 
