@@ -44,6 +44,11 @@ namespace la3dm {
         m_[i] += ybars[i];
 
       std::vector<float> probs = get_probs();
+
+      // update semantics
+      semantics = std::distance(probs.begin(), std::max_element(probs.begin(), probs.end()));
+
+      // update state
       float p = 1 - probs[0];
       state = p > Occupancy::occupied_thresh ? State::OCCUPIED : (p < Occupancy::free_thresh ? State::FREE
                                                                                              : State::UNKNOWN);

@@ -229,7 +229,7 @@ namespace la3dm {
                 //if (abar[j] + bbar[j] > 0.0)
                     //node.update(abar[j], bbar[j]);
                 node.update(ybars);
-                std::cout << "j: " << j << std::endl;
+                //std::cout << "j: " << j << std::endl;
             }
 
         }
@@ -295,7 +295,11 @@ namespace la3dm {
                 if (l > max_range)
                     continue;
             }
-            xy.emplace_back(p, 1.0f);
+            
+            if (it->z < 0.18)
+              xy.emplace_back(p, 2.0f);
+            else
+              xy.emplace_back(p, 1.0f);
 
             PointCloud frees_n;
             beam_sample(p, origin, frees_n, free_resolution);

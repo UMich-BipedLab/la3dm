@@ -5,6 +5,7 @@
 #include <fstream>
 
 #include <vector>
+#include <algorithm>
 
 namespace la3dm {
 
@@ -73,6 +74,8 @@ namespace la3dm {
          */
         inline State get_state() const { return state; }
 
+        inline int get_semantics() const { return semantics; }
+
         /// Prune current node; set state to PRUNED.
         inline void prune() { state = State::PRUNED; }
 
@@ -88,6 +91,7 @@ namespace la3dm {
         float m_B;
         std::vector<float> m_;
         State state;
+        int semantics;
 
         static float sf2;
         static float ell;   // length-scale

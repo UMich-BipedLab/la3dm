@@ -113,7 +113,7 @@ int main(int argc, char **argv) {
     // f_pub.publish();
 
     //////// Test Raytracing //////////////////
-    la3dm::MarkerArrayPub ray_pub(nh, "/ray", resolution);
+    /*la3dm::MarkerArrayPub ray_pub(nh, "/ray", resolution);
     la3dm::SemanticBGKOctoMap::RayCaster ray(&map, la3dm::point3f(1, 1, 0.3), la3dm::point3f(6, 7, 8));
     while (!ray.end()) {
         la3dm::point3f p;
@@ -124,7 +124,7 @@ int main(int argc, char **argv) {
             ray_pub.insert_point3d(p.x(), p.y(), p.z());
         }
     }
-    ray_pub.publish();
+    ray_pub.publish();*/
 
     ///////// Publish Map /////////////////////
     la3dm::MarkerArrayPub m_pub(nh, map_topic, 0.1f);
@@ -138,12 +138,13 @@ int main(int argc, char **argv) {
         if (it.get_node().get_state() == la3dm::State::OCCUPIED) {
             if (original_size) {
                 la3dm::point3f p = it.get_loc();
-                m_pub.insert_point3d(p.x(), p.y(), p.z(), min_z, max_z, it.get_size());
-            } else {
+                int semantics = it.get_node().get_semantics();
+                m_pub.insert_point3d(p.x(), p.y(), p.z(), min_z, max_z, it.get_size(), semantics);
+            } /*else {
                 auto pruned = it.get_pruned_locs();
                 for (auto n = pruned.cbegin(); n < pruned.cend(); ++n)
                     m_pub.insert_point3d(n->x(), n->y(), n->z(), min_z, max_z, map.get_resolution());
-            }
+            }*/
         }
     }
 

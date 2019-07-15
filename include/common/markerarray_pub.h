@@ -9,6 +9,32 @@
 
 namespace la3dm {
     
+    std_msgs::ColorRGBA semanticMapColor(int c) {
+      std_msgs::ColorRGBA color;
+      color.a = 1.0;
+      
+      switch (c) {
+        case 1:
+          color.r = 1;
+          color.g = 0;
+          color.b = 0;
+          break;
+        case 2:
+          color.r = 0;
+          color.g = 1;
+          color.b = 0;
+          break;
+        default:
+          color.r = 1;
+          color.g = 1;
+          color.b = 1;
+          break;
+      }
+
+      return color;
+    }
+
+
     std_msgs::ColorRGBA heightMapColor(double h) {
 
         std_msgs::ColorRGBA color;
@@ -112,11 +138,24 @@ namespace la3dm {
                 depth = (int) log2(size / 0.1);
 
             msg->markers[depth].points.push_back(center);
-
             if (min_z < max_z) {
                 double h = (1.0 - std::min(std::max((z - min_z) / (max_z - min_z), 0.0f), 1.0f)) * 0.8;
                 msg->markers[depth].colors.push_back(heightMapColor(h));
             }
+        }
+
+        void insert_point3d(float x, float y, float z, float min_z, float max_z, float size, int c) {
+            geometry_msgs::Point center;
+            center.x = x;
+            center.y = y;
+            center.z = z;
+
+            int depth = 0;
+            if (size > 0)
+                depth = (int) log2(size / 0.1);
+
+            msg->markers[depth].points.push_back(center);
+            msg->markers[depth].colors.push_back(semanticMapColor(c));
         }
 
         void insert_point3d(float x, float y, float z, float min_z, float max_z) {
