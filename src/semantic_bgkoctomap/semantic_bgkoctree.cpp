@@ -98,7 +98,7 @@ namespace la3dm {
                node_arr[depth][index].get_state() != State::PRUNED;
     }
 
-    bool SemanticOcTree::prune() {
+    /*bool SemanticOcTree::prune() {
         if (node_arr == nullptr)
             return false;
 
@@ -145,7 +145,7 @@ namespace la3dm {
             }
         }
         return pruned;
-    }
+    }*/
 
     SemanticOcTreeNode &SemanticOcTree::operator[](OcTreeHashKey key) const {
         unsigned short depth;

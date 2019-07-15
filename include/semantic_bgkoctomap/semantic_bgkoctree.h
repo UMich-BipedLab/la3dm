@@ -44,7 +44,7 @@ namespace la3dm {
          * Prune nodes by setting nodes to PRUNED.
          * Delete the layer if all nodes are pruned.
          */
-        bool prune();
+        //bool prune();
 
         /// @return true if this node is a leaf node.
         bool is_leaf(OcTreeHashKey key) const;

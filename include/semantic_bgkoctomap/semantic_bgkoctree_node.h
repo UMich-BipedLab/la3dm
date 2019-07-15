@@ -4,6 +4,8 @@
 #include <iostream>
 #include <fstream>
 
+#include <vector>
+
 namespace la3dm {
 
     /// Occupancy state: before pruning: FREE, OCCUPIED, UNKNOWN; after pruning: PRUNED
@@ -31,18 +33,22 @@ namespace la3dm {
         /*
          * @brief Constructors and destructor.
          */
-        Occupancy() : m_A(Occupancy::prior_A), m_B(Occupancy::prior_B), state(State::UNKNOWN) { classified = false; }
+        Occupancy() : m_A(Occupancy::prior_A), m_B(Occupancy::prior_B), state(State::UNKNOWN) { 
+          classified = false; 
+          m_.resize(3);
+          std::fill (m_.begin(), m_.end(), 1.0 / 3);
+        }
 
-        Occupancy(float A, float B);
+        //Occupancy(float A, float B);
 
-        Occupancy(const Occupancy &other) : m_A(other.m_A), m_B(other.m_B), state(other.state) { }
+        //Occupancy(const Occupancy &other) : m_A(other.m_A), m_B(other.m_B), state(other.state) { }
 
-        Occupancy &operator=(const Occupancy &other) {
+        /*Occupancy &operator=(const Occupancy &other) {
             m_A = other.m_A;
             m_B = other.m_B;
             state = other.state;
             return *this;
-        }
+        }*/
 
         ~Occupancy() { }
 
@@ -52,9 +58,11 @@ namespace la3dm {
          * @param kbar kernel density of negative class (unoccupied)
          */
         void update(float ybar, float kbar);
+        void update(std::vector<float>& ybars);
 
         /// Get probability of occupancy.
         float get_prob() const;
+        std::vector<float> get_probs() const;
 
         /// Get variance of occupancy (uncertainty)
         inline float get_var() const { return (m_A * m_B) / ( (m_A + m_B) * (m_A + m_B) * (m_A + m_B + 1.0f)); }
@@ -78,6 +86,7 @@ namespace la3dm {
     private:
         float m_A;
         float m_B;
+        std::vector<float> m_;
         State state;
 
         static float sf2;
@@ -85,6 +94,7 @@ namespace la3dm {
 
         static float prior_A; // prior on alpha
         static float prior_B; // prior on beta
+        //std::vector<float> prior_;
 
         static float free_thresh;     // FREE occupancy threshold
         static float occupied_thresh; // OCCUPIED occupancy threshold

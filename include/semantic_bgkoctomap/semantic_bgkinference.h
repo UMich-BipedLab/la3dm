@@ -51,19 +51,19 @@ namespace la3dm {
          * @param ybar positive class kernel density estimate (\bar{y})
          * @param kbar kernel density estimate (\bar{k})
          */
-        void predict(const std::vector<T> &xs, std::vector<T> &ybar, std::vector<T> &kbar) const {
+        void predict(const std::vector<T> &xs, std::vector<T> &abar, std::vector<T> &bbar) const {
             assert(xs.size() % dim == 0);
             MatrixXType _xs = Eigen::Map<const MatrixXType>(xs.data(), xs.size() / dim, dim);
             //std::cout << "xs: " << _xs << std::endl;
 
-            MatrixYType _ybar, _kbar;
-            predict(_xs, _ybar, _kbar);
+            MatrixYType _abar, _bbar;
+            predict(_xs, _abar, _bbar);
 
-            ybar.resize(_ybar.rows());
-            kbar.resize(_kbar.rows());
-            for (int r = 0; r < _ybar.rows(); ++r) {
-                ybar[r] = _ybar(r, 0);
-                kbar[r] = _kbar(r, 0);
+            abar.resize(_abar.rows());
+            bbar.resize(_bbar.rows());
+            for (int r = 0; r < _abar.rows(); ++r) {
+                abar[r] = _abar(r, 0);
+                bbar[r] = _bbar(r, 0);
             }
         }
 
@@ -73,22 +73,18 @@ namespace la3dm {
          * @param ybar positive class kernel density estimate (M x 1)
          * @param kbar kernel density estimate (M x 1)
          */
-        void predict(const MatrixXType &xs, MatrixYType &ybar, MatrixYType &kbar) const {
+        void predict(const MatrixXType &xs, MatrixYType &abar, MatrixYType &bbar) const {
             assert(trained == true);
 	        MatrixKType Ks;
-          //std::cout << "xs: " << xs.row(0) << std::endl;
-          //std::cout << map->search(xs(0,0), xs(0,1), xs(0,2)) << std::endl;
-          //std::cout << "x: " << x.row(0) << std::endl;
-          //std::cout << map->search(x(0,0), x(0,1), x(0,2)) << std::endl;
           
           //covSparse(xs, x, Ks);
           covCountingSensorModel(xs, x, Ks);
-          std::cout <<"xs: " << xs << std::endl;
-          std::cout <<"x: " << x << std::endl;
-          std::cout <<"Ks: " << Ks << std::endl;
 
-          ybar = (Ks * y).array();
-        	kbar = Ks.rowwise().sum().array();
+          abar = (Ks * y).array();
+          MatrixYType ones = MatrixYType::Ones(y.rows(), 1);
+          bbar = (Ks * (ones-y)).array();
+          //kbar = Ks.rowwise().sum().array();
+        
         }
 
     private:
