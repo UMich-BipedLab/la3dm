@@ -11,7 +11,7 @@ if (OPENMP_FOUND)
 endif()
 
 ## Enable OpenMP
-add_definitions(-DOPENMP)
+#add_definitions(-DOPENMP)
 
 ## Enable Debug Info
 #add_definitions(-DDEBUG)

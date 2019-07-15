@@ -1,6 +1,8 @@
 #ifndef LA3DM_SEMANTIC_BGK_H
 #define LA3DM_SEMANTIC_BGK_H
 
+#include "semantic_bgkoctomap.h"
+
 namespace la3dm {
 
 	/*
@@ -52,6 +54,7 @@ namespace la3dm {
         void predict(const std::vector<T> &xs, std::vector<T> &ybar, std::vector<T> &kbar) const {
             assert(xs.size() % dim == 0);
             MatrixXType _xs = Eigen::Map<const MatrixXType>(xs.data(), xs.size() / dim, dim);
+            //std::cout << "xs: " << _xs << std::endl;
 
             MatrixYType _ybar, _kbar;
             predict(_xs, _ybar, _kbar);
@@ -73,8 +76,18 @@ namespace la3dm {
         void predict(const MatrixXType &xs, MatrixYType &ybar, MatrixYType &kbar) const {
             assert(trained == true);
 	        MatrixKType Ks;
-        	covSparse(xs, x, Ks);
-        	ybar = (Ks * y).array();
+          //std::cout << "xs: " << xs.row(0) << std::endl;
+          //std::cout << map->search(xs(0,0), xs(0,1), xs(0,2)) << std::endl;
+          //std::cout << "x: " << x.row(0) << std::endl;
+          //std::cout << map->search(x(0,0), x(0,1), x(0,2)) << std::endl;
+          
+          //covSparse(xs, x, Ks);
+          covCountingSensorModel(xs, x, Ks);
+          std::cout <<"xs: " << xs << std::endl;
+          std::cout <<"x: " << x << std::endl;
+          std::cout <<"Ks: " << Ks << std::endl;
+
+          ybar = (Ks * y).array();
         	kbar = Ks.rowwise().sum().array();
         }
 
@@ -123,6 +136,10 @@ namespace la3dm {
                     if (Kxz(i,j) < 0.0)
                         Kxz(i,j) = 0.0f;
             }
+        }
+
+        void covCountingSensorModel(const MatrixXType &x, const MatrixXType &z, MatrixKType &Kxz) const {
+          Kxz = MatrixKType::Ones(x.rows(), z.rows());
         }
 
         T sf2;    // signal variance
