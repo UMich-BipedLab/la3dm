@@ -11,7 +11,7 @@
      -->
     <arg name="data" value="$(find la3dm)/data"/>
 
-    <arg name="dataset" default="sim_structured"/>
+    <arg name="dataset" default="sim_unstructured"/>
     <arg name="dir" value="$(arg data)/$(arg dataset)"/>
 
     <arg name="prefix" default="$(arg dataset)"/>
