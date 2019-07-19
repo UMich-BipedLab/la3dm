@@ -24,6 +24,16 @@ namespace la3dm {
           color.g = 1;
           color.b = 0;
           break;
+        case 3:
+          color.r = 0;
+          color.g = 0;
+          color.b = 1;
+          break;
+        case 4:
+          color.r = 1;
+          color.g = 1;
+          color.b = 0;
+          break;
         default:
           color.r = 1;
           color.g = 1;

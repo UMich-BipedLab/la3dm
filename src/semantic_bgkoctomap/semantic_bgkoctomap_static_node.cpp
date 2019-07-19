@@ -10,6 +10,11 @@ void load_pcd(std::string filename, la3dm::point3f &origin, la3dm::PCLPointCloud
     Eigen::Quaternionf orientaion;
     pcl::io::loadPCDFile(filename, cloud2, _origin, orientaion);
     pcl::fromPCLPointCloud2(cloud2, cloud);
+    for (size_t i = 0; i < cloud.points.size (); ++i) {
+      cloud.points[i].x = cloud.points[i].x + _origin[0];
+      cloud.points[i].y = cloud.points[i].y + _origin[1];
+      cloud.points[i].z = cloud.points[i].z + _origin[2];
+    }
     origin.x() = _origin[0];
     origin.y() = _origin[1];
     origin.z() = _origin[2];
@@ -28,6 +33,7 @@ int main(int argc, char **argv) {
     int block_depth = 4;
     double sf2 = 1.0;
     double ell = 1.0;
+    int nc = 3;
     double free_resolution = 0.5;
     double ds_resolution = 0.1;
     double free_thresh = 0.3;
@@ -48,6 +54,7 @@ int main(int argc, char **argv) {
     nh.param<int>("block_depth", block_depth, block_depth);
     nh.param<double>("sf2", sf2, sf2);
     nh.param<double>("ell", ell, ell);
+    nh.param<int>("nc", nc, nc);
     nh.param<double>("free_resolution", free_resolution, free_resolution);
     nh.param<double>("ds_resolution", ds_resolution, ds_resolution);
     nh.param<double>("free_thresh", free_thresh, free_thresh);
@@ -69,6 +76,7 @@ int main(int argc, char **argv) {
             "block_depth: " << block_depth << std::endl <<
             "sf2: " << sf2 << std::endl <<
             "ell: " << ell << std::endl <<
+            "nc: " << nc << std::endl <<
             "free_resolution: " << free_resolution << std::endl <<
             "ds_resolution: " << ds_resolution << std::endl <<
             "free_thresh: " << free_thresh << std::endl <<
@@ -81,7 +89,7 @@ int main(int argc, char **argv) {
             "prior_B: " << prior_B
             );
 
-    la3dm::SemanticBGKOctoMap map(resolution, block_depth, sf2, ell, free_thresh, occupied_thresh, var_thresh, prior_A, prior_B);
+    la3dm::SemanticBGKOctoMap map(resolution, block_depth, sf2, ell, nc, free_thresh, occupied_thresh, var_thresh, prior_A, prior_B);
 
     ros::Time start = ros::Time::now();
     for (int scan_id = 1; scan_id <= scan_num; ++scan_id) {

@@ -9,10 +9,21 @@
 #include "semantic_bgkblock.h"
 #include "semantic_bgkoctree_node.h"
 
+#include "PointXYZLO.h"
+
+POINT_CLOUD_REGISTER_POINT_STRUCT(pcl::PointXYZLO,
+                                (float, x, x)
+                                (float, y, y)
+                                (float, z, z)
+                                (int, label, label)
+                                (int, object, object)
+)
+
+
 namespace la3dm {
 
     /// PCL PointCloud types as input
-    typedef pcl::PointXYZ PCLPointType;
+    typedef pcl::PointXYZLO PCLPointType;
     typedef pcl::PointCloud<PCLPointType> PCLPointCloud;
 
     /*
@@ -51,6 +62,7 @@ namespace la3dm {
                 unsigned short block_depth,
                 float sf2,
                 float ell,
+                int nc,
                 float free_thresh,
                 float occupied_thresh,
                 float var_thresh,
@@ -360,7 +372,7 @@ namespace la3dm {
         static bool search_callback(GPPointType *p, void *arg);
 
         /// Downsample PCLPointCloud using PCL VoxelGrid Filtering.
-        void downsample(const PCLPointCloud &in, PCLPointCloud &out, float ds_resolution) const;
+        //void downsample(const PCLPointCloud &in, PCLPointCloud &out, float ds_resolution) const;
 
         /// Sample free training points along sensor beams.
         void beam_sample(const point3f &hits, const point3f &origin, PointCloud &frees,

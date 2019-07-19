@@ -20,8 +20,8 @@ namespace la3dm {
         using MatrixDKType = Eigen::Matrix<T, -1, 1>;
         using MatrixYType = Eigen::Matrix<T, -1, 1>;
 
-        SemanticBGKInference(T sf2, T ell) : sf2(sf2), ell(ell), trained(false) {
-          ybars_.resize(3);
+        SemanticBGKInference(T sf2, T ell, int nc) : sf2(sf2), ell(ell), nc(nc), trained(false) {
+          ybars_.resize(nc);
         }
 
         /*
@@ -153,6 +153,7 @@ namespace la3dm {
 
         T sf2;    // signal variance
         T ell;    // length-scale
+        int nc;   // number of classes
 
         MatrixXType x;   // temporary storage of training data
         MatrixYType y;   // temporary storage of training labels

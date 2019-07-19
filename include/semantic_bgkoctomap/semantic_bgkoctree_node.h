@@ -36,8 +36,8 @@ namespace la3dm {
          */
         Occupancy() : m_A(Occupancy::prior_A), m_B(Occupancy::prior_B), state(State::UNKNOWN) { 
           classified = false; 
-          m_.resize(3);
-          std::fill (m_.begin(), m_.end(), 1.0 / 3);
+          m_.resize(Occupancy::nc);
+          std::fill (m_.begin(), m_.end(), 1.0 / Occupancy::nc);
         }
 
         //Occupancy(float A, float B);
@@ -95,6 +95,7 @@ namespace la3dm {
 
         static float sf2;
         static float ell;   // length-scale
+        static int nc;      // number of classes
 
         static float prior_A; // prior on alpha
         static float prior_B; // prior on beta
