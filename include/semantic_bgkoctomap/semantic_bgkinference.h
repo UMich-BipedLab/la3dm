@@ -48,7 +48,32 @@ namespace la3dm {
             trained = true;
         }
 
-        
+       
+	/*void predict(const std::vector<T> &xs, std::vector<std::vector<T>> &ybars) {
+	    assert(xs.size() % dim == 0);
+	    MatrixXType _xs = Eigen::Map<const MatrixXType>(xs.data(), xs.size() / dim, dim);
+
+	    //predict(_xs, )
+	    assert(train == true);
+	    MatrixKType Ks;
+
+	    covCountingSensorModel(xs, x, Ks);
+	    for (int i = 0; i < Ks.rows())
+
+	
+	}*/
+
+
+	void predict(const std::vector<T> &xs, std::vector<T>& ybars) {
+
+          assert(trained == true);
+          for (int i = 0; i < ybars_.size(); ++i) {
+            ybars_[i] = std::count (y_vec.begin(), y_vec.end(), i);
+          }
+          ybars = ybars_;
+        }
+
+
         /*
          * @brief Predict with BGK Model
          * @param xs input vector (3M, row major)
@@ -91,14 +116,6 @@ namespace la3dm {
         
         }
 
-        void predict(const std::vector<T> &xs, std::vector<T>& ybars) {
-
-          assert(trained == true);
-          for (int i = 0; i < ybars_.size(); ++i) {
-            ybars_[i] = std::count (y_vec.begin(), y_vec.end(), i);
-          }
-          ybars = ybars_;
-        }
 
     private:
         /*
