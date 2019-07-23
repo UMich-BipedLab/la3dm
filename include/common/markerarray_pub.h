@@ -8,7 +8,39 @@
 #include <string>
 
 namespace la3dm {
+
+double interpolate( double val, double y0, double x0, double y1, double x1 ) {
+    return (val-x0)*(y1-y0)/(x1-x0) + y0;
+}
+
+double base( double val ) {
+    if ( val <= -0.75 ) return 0;
+    else if ( val <= -0.25 ) return interpolate( val, 0.0, -0.75, 1.0, -0.25 );
+    else if ( val <= 0.25 ) return 1.0;
+    else if ( val <= 0.75 ) return interpolate( val, 1.0, 0.25, 0.0, 0.75 );
+    else return 0.0;
+}
+
+double red( double gray ) {
+    return base( gray - 0.5 );
+}
+double green( double gray ) {
+    return base( gray );
+}
+double blue( double gray ) {
+    return base( gray + 0.5 );
+}
     
+    std_msgs::ColorRGBA JetMapColor(float gray) {
+      std_msgs::ColorRGBA color;
+      color.a = 1.0;
+
+      color.r = red(gray);
+      color.g = green(gray);
+      color.b = blue(gray);
+      return color;
+    }
+
     std_msgs::ColorRGBA semanticMapColor(int c) {
       std_msgs::ColorRGBA color;
       color.a = 1.0;
@@ -167,6 +199,24 @@ namespace la3dm {
             msg->markers[depth].points.push_back(center);
             msg->markers[depth].colors.push_back(semanticMapColor(c));
         }
+
+	void insert_point3d_var(float x, float y, float z, float min_v, float max_v, float size, float var) {
+	    geometry_msgs::Point center;
+	    center.x = x;
+	    center.y = y;
+	    center.z = z;
+
+	    int depth = 0;
+	    if (size > 0)
+              depth = (int) log2(size / 0.1);
+
+	    float middle = (max_v + min_v) / 2;
+	    var = (var - middle) / (middle - min_v);
+	    //std::cout << var << std::endl; 
+	    msg->markers[depth].points.push_back(center);
+	    msg->markers[depth].colors.push_back(JetMapColor(var));
+
+	}
 
         void insert_point3d(float x, float y, float z, float min_z, float max_z) {
             insert_point3d(x, y, z, min_z, max_z, -1.0f);

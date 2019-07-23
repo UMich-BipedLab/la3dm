@@ -64,6 +64,7 @@ namespace la3dm {
         /// Get probability of occupancy.
         float get_prob() const;
         std::vector<float> get_probs() const;
+	std::vector<float> get_vars() const;
 
         /// Get variance of occupancy (uncertainty)
         inline float get_var() const { return (m_A * m_B) / ( (m_A + m_B) * (m_A + m_B) * (m_A + m_B + 1.0f)); }
@@ -90,6 +91,7 @@ namespace la3dm {
         float m_A;
         float m_B;
         std::vector<float> m_;
+	std::vector<float> var_;
         State state;
         int semantics;
 

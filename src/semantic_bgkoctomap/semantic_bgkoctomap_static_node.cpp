@@ -142,12 +142,35 @@ int main(int argc, char **argv) {
         min_z = lim_min.z();
         max_z = lim_max.z();
     }
+
+    // Find max and min variance
+    float max_var = std::numeric_limits<float>::min();
+    float min_var = std::numeric_limits<float>::max(); 
+    for (auto it = map.begin_leaf(); it != map.end_leaf(); ++it) {
+    	 if (it.get_node().get_state() == la3dm::State::OCCUPIED) {
+	     if (original_size) {
+	     	int semantics = it.get_node().get_semantics();
+		std::vector<float> vars = it.get_node().get_vars();
+		if (vars[semantics] > max_var)
+		  max_var = vars[semantics];
+		if (vars[semantics] < min_var)
+		  min_var = vars[semantics];
+	     }
+	 }
+    }
+    std::cout << "max_var: " << max_var << std::endl;
+    std::cout << "min_var: " << min_var << std::endl;
+
+
     for (auto it = map.begin_leaf(); it != map.end_leaf(); ++it) {
         if (it.get_node().get_state() == la3dm::State::OCCUPIED) {
             if (original_size) {
                 la3dm::point3f p = it.get_loc();
                 int semantics = it.get_node().get_semantics();
-                m_pub.insert_point3d(p.x(), p.y(), p.z(), min_z, max_z, it.get_size(), semantics);
+		std::vector<float> vars = it.get_node().get_vars();
+                //m_pub.insert_point3d(p.x(), p.y(), p.z(), min_z, max_z, it.get_size(), semantics);
+		//std::cout << vars[semantics] << std::endl;
+		m_pub.insert_point3d_var(p.x(), p.y(), p.z(), min_var, std::min(var_thresh, max_var), it.get_size(), vars[semantics]);
             } /*else {
                 auto pruned = it.get_pruned_locs();
                 for (auto n = pruned.cbegin(); n < pruned.cend(); ++n)
