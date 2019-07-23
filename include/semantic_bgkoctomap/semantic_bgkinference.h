@@ -20,9 +20,7 @@ namespace la3dm {
         using MatrixDKType = Eigen::Matrix<T, -1, 1>;
         using MatrixYType = Eigen::Matrix<T, -1, 1>;
 
-        SemanticBGKInference(T sf2, T ell, int nc) : sf2(sf2), ell(ell), nc(nc), trained(false) {
-          ybars_.resize(nc);
-        }
+        SemanticBGKInference(T sf2, T ell, int nc) : sf2(sf2), ell(ell), nc(nc), trained(false) { }
 
         /*
          * @brief Fit BGK Model
@@ -49,29 +47,35 @@ namespace la3dm {
         }
 
        
-	/*void predict(const std::vector<T> &xs, std::vector<std::vector<T>> &ybars) {
+	void predict(const std::vector<T> &xs, std::vector<std::vector<T>> &ybars) {
 	    assert(xs.size() % dim == 0);
 	    MatrixXType _xs = Eigen::Map<const MatrixXType>(xs.data(), xs.size() / dim, dim);
-
-	    //predict(_xs, )
-	    assert(train == true);
+	    assert(trained == true);
 	    MatrixKType Ks;
 
-	    covCountingSensorModel(xs, x, Ks);
-	    for (int i = 0; i < Ks.rows())
+	    //covCountingSensorModel(_xs, x, Ks);
+	    covSparse(_xs, x, Ks);
+	    
+	    ybars.resize(_xs.rows());
+	    for (int r = 0; r < _xs.rows(); ++r)
+	      ybars[r].resize(nc);
 
-	
-	}*/
-
-
-	void predict(const std::vector<T> &xs, std::vector<T>& ybars) {
-
-          assert(trained == true);
-          for (int i = 0; i < ybars_.size(); ++i) {
-            ybars_[i] = std::count (y_vec.begin(), y_vec.end(), i);
-          }
-          ybars = ybars_;
-        }
+            MatrixYType _y_vec = Eigen::Map<const MatrixYType>(y_vec.data(), y_vec.size(), 1);
+	    for (int k = 0; k < nc; ++k) {
+	      for (int i = 0; i < y_vec.size(); ++i) {
+	        if (y_vec[i] == k)
+		  _y_vec(i, 0) = 1;
+		else
+		  _y_vec(i, 0) = 0;
+	      }
+	      
+	      MatrixYType _ybar;
+	      _ybar = (Ks * _y_vec);
+	      
+	      for (int r = 0; r < _ybar.rows(); ++r)
+	        ybars[r][k] = _ybar(r, 0);
+	    }
+	}
 
 
         /*
@@ -115,7 +119,6 @@ namespace la3dm {
           //kbar = Ks.rowwise().sum().array();
         
         }
-
 
     private:
         /*
@@ -175,7 +178,6 @@ namespace la3dm {
         MatrixXType x;   // temporary storage of training data
         MatrixYType y;   // temporary storage of training labels
         std::vector<T> y_vec;
-        std::vector<T> ybars_;
 
         bool trained;    // true if bgkinference stored training data
     };
