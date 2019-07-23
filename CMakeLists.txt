@@ -10,6 +10,11 @@ if (OPENMP_FOUND)
         message("OpenMP enabled")
 endif()
 
+find_package(octomap REQUIRED)
+include_directories(${OCTOMAP_INCLUDE_DIRS})
+link_directories(${OCTOMAP_LIBRARY_DIRS})
+message(${OCTOMAP_INCLUDE_DIRS})
+
 ## Enable OpenMP
 #add_definitions(-DOPENMP)
 
