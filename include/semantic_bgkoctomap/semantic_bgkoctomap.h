@@ -23,7 +23,7 @@ POINT_CLOUD_REGISTER_POINT_STRUCT(pcl::PointXYZLO,
 namespace la3dm {
 
     /// PCL PointCloud types as input
-    typedef pcl::PointXYZLO PCLPointType;
+    typedef pcl::PointXYZL PCLPointType;
     typedef pcl::PointCloud<PCLPointType> PCLPointCloud;
 
     /*

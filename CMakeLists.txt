@@ -10,6 +10,8 @@ if (OPENMP_FOUND)
         message("OpenMP enabled")
 endif()
 
+find_package(OpenCV REQUIRED)
+
 ## Enable OpenMP
 #add_definitions(-DOPENMP)
 
@@ -117,8 +119,10 @@ include_directories(
         include/gpoctomap
         include/bgkoctomap
         include/common
+        include/kitti_devkit
         ${catkin_INCLUDE_DIRS}
         ${OCTOMAP_INCLUDE_DIRS}
+        ${OpenCV_INCLUDE_DIRS}
 )
 
 ## Declare a cpp library
@@ -195,6 +199,7 @@ add_executable(gpoctomap_server
 
 target_link_libraries(semantic_bgkoctomap_static_node
         ${catkin_LIBRARIES}
+        ${OpenCV_LIBRARIES}
 )
 
 target_link_libraries(bgkoctomap_static_node

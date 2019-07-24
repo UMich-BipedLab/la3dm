@@ -4,6 +4,8 @@
 #include "semantic_bgkoctomap.h"
 #include "markerarray_pub.h"
 
+#include "kitti_util.h"
+
 void load_pcd(std::string filename, la3dm::point3f &origin, la3dm::PCLPointCloud &cloud) {
     pcl::PCLPointCloud2 cloud2;
     Eigen::Vector4f _origin;
@@ -89,16 +91,37 @@ int main(int argc, char **argv) {
             "prior_B: " << prior_B
             );
 
+
+    // Process KITTI Data
+    float depth_scaling = 2000;
+    Eigen::Matrix3f calibration_mat;
+    calibration_mat << 707.0912, 0, 601.8873, // kitti sequence 5
+		                   0, 707.0912, 183.1104,
+			                 0,   0,   1;
+    KITTIData kitti_data(depth_scaling, calibration_mat);
+    cv::Mat rgb_img = cv::imread("/home/ganlu/la3dm_ws/src/semantic_3d_mapping/grid_sensor/data_kitti/rgb_img/000000.png", 1);
+    cv::Mat depth_img = cv::imread("/home/ganlu/la3dm_ws/src/semantic_3d_mapping/grid_sensor/data_kitti/depth_img/000000.png", CV_LOAD_IMAGE_ANYDEPTH);
+    MatrixXf_row frame_label_prob;
+    frame_label_prob.resize(1226*370, 11); 
+    kitti_data.read_label_prob_bin("/home/ganlu/la3dm_ws/src/semantic_3d_mapping/grid_sensor/data_kitti/label_binary/000000.bin", frame_label_prob);
+
+
     la3dm::SemanticBGKOctoMap map(resolution, block_depth, sf2, ell, nc, free_thresh, occupied_thresh, var_thresh, prior_A, prior_B);
 
     ros::Time start = ros::Time::now();
-    for (int scan_id = 1; scan_id <= scan_num; ++scan_id) {
+    for (int scan_id = 1; scan_id <= 1; ++scan_id) {
         la3dm::PCLPointCloud cloud;
         la3dm::point3f origin;
         std::string filename(dir + "/" + prefix + "_" + std::to_string(scan_id) + ".pcd");
-        load_pcd(filename, origin, cloud);
+        
+        kitti_data.process_depth_img(rgb_img, depth_img, frame_label_prob, cloud);
+        origin.x() = 0;
+        origin.y() = 0;
+        origin.z() = 0;
+        
+        //load_pcd(filename, origin, cloud);
 
-        map.insert_pointcloud(cloud, origin, resolution, free_resolution, max_range);
+        map.insert_pointcloud(cloud, origin, resolution, free_resolution, 100);
         ROS_INFO_STREAM("Scan " << scan_id << " done");
     }
     ros::Time end = ros::Time::now();
@@ -167,11 +190,11 @@ int main(int argc, char **argv) {
             if (original_size) {
                 la3dm::point3f p = it.get_loc();
                 int semantics = it.get_node().get_semantics();
-		std::vector<float> vars = it.get_node().get_vars();
-                //m_pub.insert_point3d(p.x(), p.y(), p.z(), min_z, max_z, it.get_size(), semantics);
-		//std::cout << vars[semantics] << std::endl;
-		m_pub.insert_point3d_var(p.x(), p.y(), p.z(), min_var, std::min(var_thresh, max_var), it.get_size(), vars[semantics]);
-            } /*else {
+		            std::vector<float> vars = it.get_node().get_vars();
+                m_pub.insert_point3d(p.x(), p.y(), p.z(), min_z, max_z, it.get_size(), semantics);
+		            //std::cout << vars[semantics] << std::endl;
+		            //m_pub.insert_point3d_var(p.x(), p.y(), p.z(), min_var, std::min(var_thresh, max_var), it.get_size(), vars[semantics]);
+              } /*else {
                 auto pruned = it.get_pruned_locs();
                 for (auto n = pruned.cbegin(); n < pruned.cend(); ++n)
                     m_pub.insert_point3d(n->x(), n->y(), n->z(), min_z, max_z, map.get_resolution());

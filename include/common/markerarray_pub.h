@@ -41,30 +41,65 @@ double blue( double gray ) {
       return color;
     }
 
-    std_msgs::ColorRGBA semanticMapColor(int c) {
+    std_msgs::ColorRGBA KITTISemanticMapColor(int c) {
       std_msgs::ColorRGBA color;
       color.a = 1.0;
       
       switch (c) {
-        case 1:
-          color.r = 1;
+        case 1:  // building
+          color.r = 128.0 / 255;
           color.g = 0;
           color.b = 0;
           break;
-        case 2:
-          color.r = 0;
-          color.g = 1;
+        case 2:  // sky
+          color.r = 128.0 / 255;
+          color.g = 128.0 / 255;
+          color.b = 128.0 / 255;
+          break;
+        case 3:  // road
+          color.r = 128.0 / 255;
+          color.g = 64.0  / 255;
+          color.b = 128.0 / 255;
+          break;
+        case 4:  // vegetation
+          color.r = 128.0 / 255;
+          color.g = 128.0 / 255;
           color.b = 0;
           break;
-        case 3:
+        case 5:  // sidewalk
           color.r = 0;
           color.g = 0;
-          color.b = 1;
+          color.b = 192.0 / 255;
           break;
-        case 4:
-          color.r = 1;
-          color.g = 1;
+        case 6:  // car
+          color.r = 64.0 / 255;
+          color.g = 0;
+          color.b = 128.0 / 255;
+          break;
+        case 7:  // pedestrain
+          color.r = 64.0 / 255;
+          color.g = 64.0 / 255;
           color.b = 0;
+          break;
+        case 8:  // cyclist
+          color.r = 0;
+          color.g = 128.0 / 255;
+          color.b = 192.0 / 255;
+          break;
+        case 9:  // signate
+          color.r = 192.0 / 255;
+          color.g = 128.0 / 255;
+          color.b = 128.0 / 255;
+          break;
+        case 10: // fense
+          color.r = 64.0  / 255;
+          color.g = 64.0  / 255;
+          color.b = 128.0 / 255;
+          break;
+        case 11: // pole
+          color.r = 192.0 / 255;
+          color.g = 192.0 / 255;
+          color.b = 128.0 / 255;
           break;
         default:
           color.r = 1;
@@ -197,7 +232,7 @@ double blue( double gray ) {
                 depth = (int) log2(size / 0.1);
 
             msg->markers[depth].points.push_back(center);
-            msg->markers[depth].colors.push_back(semanticMapColor(c));
+            msg->markers[depth].colors.push_back(KITTISemanticMapColor(c));
         }
 
 	void insert_point3d_var(float x, float y, float z, float min_v, float max_v, float size, float var) {
