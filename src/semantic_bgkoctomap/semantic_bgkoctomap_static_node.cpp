@@ -126,10 +126,11 @@ int main(int argc, char **argv) {
 
 
     KITTIData kitti_data(image_width, image_height, focal_x, focal_y, center_x, center_y, depth_scaling, num_class);
+    kitti_data.read_all_poses(dir + "/" + "CameraTrajectory.txt", scan_num);
     la3dm::SemanticBGKOctoMap map(resolution, block_depth, sf2, ell, num_class, free_thresh, occupied_thresh, var_thresh, prior_A, prior_B);
 
     ros::Time start = ros::Time::now();
-    for (int scan_id = 18; scan_id <= scan_num; ++scan_id) {
+    for (int scan_id = 0; scan_id <= scan_num; ++scan_id) {
         la3dm::PCLPointCloud cloud;
         la3dm::point3f origin;
         
@@ -143,11 +144,7 @@ int main(int argc, char **argv) {
     	cv::Mat left_img = cv::imread(left_img_name, 1);
     	cv::Mat depth_img = cv::imread(depth_img_name, CV_LOAD_IMAGE_ANYDEPTH);
     	kitti_data.read_label_prob_bin(label_bin_name);
-        kitti_data.process_depth_img(left_img, depth_img, cloud);
-        
-	origin.x() = 0;
-        origin.y() = 0;
-        origin.z() = 0;
+        kitti_data.process_depth_img(scan_id, left_img, depth_img, cloud, origin);
         
         //load_pcd(filename, origin, cloud);
 

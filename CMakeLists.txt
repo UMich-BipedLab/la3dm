@@ -13,7 +13,7 @@ endif()
 find_package(OpenCV REQUIRED)
 
 ## Enable OpenMP
-#add_definitions(-DOPENMP)
+add_definitions(-DOPENMP)
 
 ## Enable Debug Info
 #add_definitions(-DDEBUG)
