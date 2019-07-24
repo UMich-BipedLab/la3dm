@@ -31,7 +31,6 @@ class KITTIData {
 
    ~KITTIData() {}
 
-
    bool read_all_poses(const std::string trajectory_file, const int scan_num) {
      int total_img_number = scan_num + 1;  // NOTE: scan id starts from 0
      if (std::ifstream(trajectory_file)) {
@@ -61,7 +60,6 @@ class KITTIData {
         return false;
    }
 
-
   bool read_label_prob_bin(const std::string label_bin) {// assumed mat size correct 
     if (std::ifstream(label_bin)) {
       std::ifstream fLables(label_bin.c_str(), std::ios::in|std::ios::binary);
@@ -80,21 +78,20 @@ class KITTIData {
   } 
    
   void process_depth_img(const int scan_id, const cv::Mat& rgb_img, const cv::Mat& depth_img,
-		         pcl::PointCloud<pcl::PointXYZL>& cloud, la3dm::point3f& origin) {
-    int pix_label;
-    float pix_depth;
-
+                         pcl::PointCloud<pcl::PointXYZL>& cloud, la3dm::point3f& origin) {
+    
     //pcl::PointCloud<pcl::PointXYZL> cloud;
-    pcl::PointXYZL pt;
     for (int32_t i = 0; i < im_width_ * im_height_; ++i) {
       int ux = i % im_width_;
       int uy = i / im_width_;
-      pix_depth = (float) depth_img.at<uint16_t>(uy, ux);
+      float pix_depth = (float) depth_img.at<uint16_t>(uy, ux);
       pix_depth = pix_depth / depth_scaling_;
 
+      int pix_label;
       frame_label_prob_.row(i).maxCoeff(&pix_label);
 
       if (pix_depth > 0.1) {
+        pcl::PointXYZL pt;
         pt.x = (ux - cx_) * (1.0 / fx_) * pix_depth;
         pt.y = (uy - cy_) * (1.0 / fy_) * pix_depth;
         pt.z = pix_depth;
