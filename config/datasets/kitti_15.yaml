@@ -1,0 +1,18 @@
+# sim_unstructured config
+dir: /home/ganlu/la3dm_ws/src/semantic_3d_mapping/grid_sensor/data_kitti
+left_img_prefix: rgb_img
+depth_img_prefix: depth_img
+label_bin_prefix: label_binary
+
+# Information about range-finder data
+scan_num: 19 # How many scans to use
+max_range: 20 # Sensor max range (m)
+
+# Bounds on map height
+min_z: 0
+max_z: 4.3
+
+original_size: true
+predict: false
+
+nc: 12 # Number of classes

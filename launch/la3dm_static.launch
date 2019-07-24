@@ -1,29 +1,15 @@
 <launch>
     <!-- la3dm_static -->
     <!-- Sets up an la3dm node with parameters specified by args -->
-    <!-- See la3dm/config/methods/bgkoctomap.yaml for config parameters -->
+    <!-- See la3dm/config/methods/semantic_bgkoctomap.yaml for config parameters -->
+    
     <arg name="method" default="semantic_bgkoctomap"/>
-
-    <!-- 
-        Choose world:
-        - sim_structured
-        - sim_unstructured
-     -->
-    <arg name="data" value="$(find la3dm)/data"/>
-
-    <arg name="dataset" default="sim_unstructured"/>
-    <arg name="dir" value="$(arg data)/$(arg dataset)"/>
-
-    <arg name="prefix" default="$(arg dataset)"/>
-
+    <arg name="dataset" default="kitti_15"/>
     <arg name="method_config" value="$(find la3dm)/config/methods"/>
     <arg name="data_config" value="$(find la3dm)/config/datasets/"/>
 
     <!--Start the LA3DM node -->
     <node pkg="la3dm" type="$(arg method)_static_node" name="la3dm_static" output="screen">
-
-        <param name="dir" value="$(arg dir)"/>
-        <param name="prefix" value="$(arg prefix)"/>
 
         <!-- Load method configuration from file -->
         <rosparam file="$(arg method_config)/$(arg method).yaml" command="load"/>

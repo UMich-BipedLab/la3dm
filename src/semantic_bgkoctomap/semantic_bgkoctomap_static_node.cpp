@@ -26,16 +26,11 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "semantic_bgkoctomap_static_node");
     ros::NodeHandle nh("~");
 
-    std::string dir;
-    std::string prefix;
-    int scan_num = 0;
     std::string map_topic("/occupied_cells_vis_array");
-    double max_range = -1;
     double resolution = 0.1;
     int block_depth = 4;
     double sf2 = 1.0;
     double ell = 1.0;
-    int nc = 3;
     double free_resolution = 0.5;
     double ds_resolution = 0.1;
     double free_thresh = 0.3;
@@ -46,17 +41,28 @@ int main(int argc, char **argv) {
     float var_thresh = 1.0f;
     float prior_A = 1.0f;
     float prior_B = 1.0f;
+    
+    // KITTI
+    std::string dir;
+    std::string left_img_prefix;
+    std::string depth_img_prefix;
+    std::string label_bin_prefix;
+    int scan_num = 0;
+    double max_range = -1;
+    int image_width = 1226;
+    int image_height = 370;
+    float focal_x = 707.0912;
+    float focal_y = 707.0912;
+    float center_x = 601.8873;
+    float center_y = 183.1104;
+    float depth_scaling = 2000;
+    int num_class = 12;
 
-    nh.param<std::string>("dir", dir, dir);
-    nh.param<std::string>("prefix", prefix, prefix);
     nh.param<std::string>("topic", map_topic, map_topic);
-    nh.param<int>("scan_num", scan_num, scan_num);
-    nh.param<double>("max_range", max_range, max_range);
     nh.param<double>("resolution", resolution, resolution);
     nh.param<int>("block_depth", block_depth, block_depth);
     nh.param<double>("sf2", sf2, sf2);
     nh.param<double>("ell", ell, ell);
-    nh.param<int>("nc", nc, nc);
     nh.param<double>("free_resolution", free_resolution, free_resolution);
     nh.param<double>("ds_resolution", ds_resolution, ds_resolution);
     nh.param<double>("free_thresh", free_thresh, free_thresh);
@@ -67,18 +73,29 @@ int main(int argc, char **argv) {
     nh.param<float>("var_thresh", var_thresh, var_thresh);
     nh.param<float>("prior_A", prior_A, prior_A);
     nh.param<float>("prior_B", prior_B, prior_B);
+    
+    // KITTI
+    nh.param<std::string>("dir", dir, dir);
+    nh.param<std::string>("left_img_prefix", left_img_prefix, left_img_prefix);
+    nh.param<std::string>("depth_img_prefix", depth_img_prefix, depth_img_prefix);
+    nh.param<std::string>("label_bin_prefix", label_bin_prefix, label_bin_prefix);
+    nh.param<int>("scan_num", scan_num, scan_num);
+    nh.param<double>("max_range", max_range, max_range);
+    nh.param<int>("image_width", image_width, image_width);
+    nh.param<int>("image_height", image_height, image_height);
+    nh.param<float>("focal_x", focal_x, focal_x);
+    nh.param<float>("focal_y", focal_y, focal_y);
+    nh.param<float>("center_x", center_x, center_x);
+    nh.param<float>("center_y", center_y, center_y);
+    nh.param<float>("depth_scaling", depth_scaling, depth_scaling);
+    nh.param<int>("num_class", num_class, num_class);
 
     ROS_INFO_STREAM("Parameters:" << std::endl <<
-            "dir: " << dir << std::endl <<
-            "prefix: " << prefix << std::endl <<
-            "topic: " << map_topic << std::endl <<
-            "scan_sum: " << scan_num << std::endl <<
-            "max_range: " << max_range << std::endl <<
+	    "topic: " << map_topic << std::endl <<
             "resolution: " << resolution << std::endl <<
             "block_depth: " << block_depth << std::endl <<
             "sf2: " << sf2 << std::endl <<
             "ell: " << ell << std::endl <<
-            "nc: " << nc << std::endl <<
             "free_resolution: " << free_resolution << std::endl <<
             "ds_resolution: " << ds_resolution << std::endl <<
             "free_thresh: " << free_thresh << std::endl <<
@@ -88,60 +105,57 @@ int main(int argc, char **argv) {
             "original_size: " << original_size << std::endl <<
             "var_thresh: " << var_thresh << std::endl <<
             "prior_A: " << prior_A << std::endl <<
-            "prior_B: " << prior_B
+            "prior_B: " << prior_B << std::endl <<
+	    
+	    "KITTI:" << std::endl <<
+	    "dir: " << dir << std::endl <<
+            "left_img_prefix: " << left_img_prefix << std::endl <<
+            "depth_img_prefix: " << depth_img_prefix << std::endl <<
+            "label_bin_prefix: " << label_bin_prefix << std::endl <<
+	    "scan_sum: " << scan_num << std::endl <<
+            "max_range: " << max_range << std::endl <<
+	    "image_width: " << image_width << std::endl <<
+	    "image_height: " << image_height << std::endl <<
+	    "focal_x: " << focal_x << std::endl <<
+	    "focal_y: " << focal_y << std::endl <<
+	    "center_x: " << center_x << std::endl <<
+	    "center_y: " << center_y << std::endl <<
+	    "depth_scaling: " << depth_scaling << std::endl <<
+	    "num_class: " << num_class
             );
 
 
-    // Process KITTI Data
-    float depth_scaling = 2000;
-    Eigen::Matrix3f calibration_mat;
-    calibration_mat << 707.0912, 0, 601.8873, // kitti sequence 5
-		                   0, 707.0912, 183.1104,
-			                 0,   0,   1;
-    KITTIData kitti_data(depth_scaling, calibration_mat);
-    cv::Mat rgb_img = cv::imread("/home/ganlu/la3dm_ws/src/semantic_3d_mapping/grid_sensor/data_kitti/rgb_img/000000.png", 1);
-    cv::Mat depth_img = cv::imread("/home/ganlu/la3dm_ws/src/semantic_3d_mapping/grid_sensor/data_kitti/depth_img/000000.png", CV_LOAD_IMAGE_ANYDEPTH);
-    MatrixXf_row frame_label_prob;
-    frame_label_prob.resize(1226*370, 11); 
-    kitti_data.read_label_prob_bin("/home/ganlu/la3dm_ws/src/semantic_3d_mapping/grid_sensor/data_kitti/label_binary/000000.bin", frame_label_prob);
-
-
-    la3dm::SemanticBGKOctoMap map(resolution, block_depth, sf2, ell, nc, free_thresh, occupied_thresh, var_thresh, prior_A, prior_B);
+    KITTIData kitti_data(image_width, image_height, focal_x, focal_y, center_x, center_y, depth_scaling, num_class);
+    la3dm::SemanticBGKOctoMap map(resolution, block_depth, sf2, ell, num_class, free_thresh, occupied_thresh, var_thresh, prior_A, prior_B);
 
     ros::Time start = ros::Time::now();
-    for (int scan_id = 1; scan_id <= 1; ++scan_id) {
+    for (int scan_id = 18; scan_id <= scan_num; ++scan_id) {
         la3dm::PCLPointCloud cloud;
         la3dm::point3f origin;
-        std::string filename(dir + "/" + prefix + "_" + std::to_string(scan_id) + ".pcd");
         
-        kitti_data.process_depth_img(rgb_img, depth_img, frame_label_prob, cloud);
-        origin.x() = 0;
+	char scan_id_c[256];
+	sprintf(scan_id_c, "%06d", scan_id);  // format into 6 digit
+	std::string scan_id_s(scan_id_c);
+	std::string left_img_name(dir + "/" + left_img_prefix + "/" + scan_id_s + ".png");
+	std::string depth_img_name(dir + "/" + depth_img_prefix + "/" + scan_id_s + ".png");
+	std::string label_bin_name(dir + "/" + label_bin_prefix + "/" + scan_id_s + ".bin");
+
+    	cv::Mat left_img = cv::imread(left_img_name, 1);
+    	cv::Mat depth_img = cv::imread(depth_img_name, CV_LOAD_IMAGE_ANYDEPTH);
+    	kitti_data.read_label_prob_bin(label_bin_name);
+        kitti_data.process_depth_img(left_img, depth_img, cloud);
+        
+	origin.x() = 0;
         origin.y() = 0;
         origin.z() = 0;
         
         //load_pcd(filename, origin, cloud);
 
-        map.insert_pointcloud(cloud, origin, resolution, free_resolution, 100);
+        map.insert_pointcloud(cloud, origin, resolution, free_resolution, max_range);
         ROS_INFO_STREAM("Scan " << scan_id << " done");
     }
     ros::Time end = ros::Time::now();
     ROS_INFO_STREAM("Mapping finished in " << (end - start).toSec() << "s");
-
-    ///////// Compute Frontiers /////////////////////
-    // ROS_INFO_STREAM("Computing frontiers");
-    // la3dm::MarkerArrayPub f_pub(nh, "frontier_map", resolution);
-    // for (auto it = map.begin_leaf(); it != map.end_leaf(); ++it) {
-    //     la3dm::point3f p = it.get_loc();
-    //     if (p.z() > 1.0 || p.z() < 0.3)
-    //         continue;
-
-
-    //     if (it.get_node().get_var() > 0.02 &&
-    //         it.get_node().get_prob() < 0.3) {
-    //         f_pub.insert_point3d(p.x(), p.y(), p.z());
-    //     }
-    // }
-    // f_pub.publish();
 
     //////// Test Raytracing //////////////////
     /*la3dm::MarkerArrayPub ray_pub(nh, "/ray", resolution);
