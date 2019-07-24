@@ -136,13 +136,20 @@ int main(int argc, char **argv) {
       map.insert_pointcloud(cloud, origin, resolution, free_resolution, max_range);
       ROS_INFO_STREAM("Scan " << scan_id << " done");
       
-      
+      ///////// Query Map /////////////////////
+      /*for (size_t i = 0; i < cloud.points.size (); ++i) {
+        la3dm::SemanticOcTreeNode node = map.search(cloud.points[i].x, cloud.points[i].y, cloud.points[i].z);
+        if (node.get_state() == la3dm::State::OCCUPIED)
+          std::cout << node.get_semantics() << std::endl;
+      }*/
+
       ///////// Publish Map /////////////////////
       for (auto it = map.begin_leaf(); it != map.end_leaf(); ++it) {
         if (it.get_node().get_state() == la3dm::State::OCCUPIED) {
           la3dm::point3f p = it.get_loc();
-          int semantics = it.get_node().get_semantics();
-          m_pub.insert_point3d_semantics(p.x(), p.y(), p.z(), it.get_size(), semantics);
+          //int semantics = it.get_node().get_semantics();
+          la3dm::SemanticOcTreeNode node = map.search(p);
+          m_pub.insert_point3d_semantics(p.x(), p.y(), p.z(), it.get_size(), node.get_semantics());
         }
       }
       m_pub.publish();

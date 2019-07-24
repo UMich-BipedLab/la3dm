@@ -40,6 +40,19 @@ namespace la3dm {
           std::fill (m_.begin(), m_.end(), 1.0 / Occupancy::nc);
         }
 
+        Occupancy(const Occupancy &other) : state(other.state), semantics(other.semantics) {
+          m_ = other.m_;
+          var_ = other.var_;
+        }
+
+        Occupancy &operator=(const Occupancy &other) {
+          m_ = other.m_;
+          var_ = other.var_;
+          state = other.state;
+          semantics = other.semantics;
+          return *this;
+        }
+
         //Occupancy(float A, float B);
 
         //Occupancy(const Occupancy &other) : m_A(other.m_A), m_B(other.m_B), state(other.state) { }
@@ -64,7 +77,7 @@ namespace la3dm {
         /// Get probability of occupancy.
         float get_prob() const;
         std::vector<float> get_probs() const;
-	std::vector<float> get_vars() const;
+	      std::vector<float> get_vars() const;
 
         /// Get variance of occupancy (uncertainty)
         inline float get_var() const { return (m_A * m_B) / ( (m_A + m_B) * (m_A + m_B) * (m_A + m_B + 1.0f)); }
@@ -91,7 +104,7 @@ namespace la3dm {
         float m_A;
         float m_B;
         std::vector<float> m_;
-	std::vector<float> var_;
+	      std::vector<float> var_;
         State state;
         int semantics;
 
