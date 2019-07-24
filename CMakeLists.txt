@@ -158,10 +158,10 @@ set(GP_SOURCE_FILES
 )
 
 
-add_executable(semantic_bgkoctomap_static_node 
+add_executable(semantic_bgkoctomap_kitti_node 
   ${SEMANTIC_BGK_SOURCE_FILES}
     ${COMMON_SOURCE_FILES}
-    src/semantic_bgkoctomap/semantic_bgkoctomap_static_node.cpp
+    src/semantic_bgkoctomap/semantic_bgkoctomap_kitti_node.cpp
 )
 
 add_executable(bgkoctomap_static_node 
@@ -197,7 +197,7 @@ add_executable(gpoctomap_server
 
 ## Specify libraries to link a library or executable target against
 
-target_link_libraries(semantic_bgkoctomap_static_node
+target_link_libraries(semantic_bgkoctomap_kitti_node
         ${catkin_LIBRARIES}
         ${OpenCV_LIBRARIES}
 )

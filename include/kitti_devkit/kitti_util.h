@@ -26,43 +26,40 @@ class KITTIData {
       , cy_(cy)
       , depth_scaling_(depth_scaling)
       , num_class_(num_class) {
-     frame_label_prob_.resize(im_width_*im_height_, num_class_ - 1);  // NOTE: valid label starts from 0
-   }
+        frame_label_prob_.resize(im_width_*im_height_, num_class_ - 1);  // NOTE: valid label starts from 0
+      }
 
    ~KITTIData() {}
 
 
-   bool read_all_poses(const std::string trajectory_file, const int scan_num)
-{
-   int total_img_number = scan_num + 1;  // NOTE: scan id starts from 0
-   if (std::ifstream(trajectory_file))
-    {
-      all_poses_.resize(total_img_number, 12);
-      std::ifstream fPoses;
-      fPoses.open(trajectory_file.c_str());
-      int counter=0;
-      while(!fPoses.eof()){
-	  std::string s;
-	  std::getline(fPoses,s);
-	  if(!s.empty()){
-	      std::stringstream ss;
-	      ss << s;
-	      float t;
-	      for (int i=0;i<12;i++){
-		  ss >> t;
-		  all_poses_(counter,i)=t;
-	      }
-	      counter++;
-	      if (counter>=total_img_number)
-		break;
-	  }
+   bool read_all_poses(const std::string trajectory_file, const int scan_num) {
+     int total_img_number = scan_num + 1;  // NOTE: scan id starts from 0
+     if (std::ifstream(trajectory_file)) {
+       all_poses_.resize(total_img_number, 12);
+       std::ifstream fPoses;
+       fPoses.open(trajectory_file.c_str());
+       int counter=0;
+       while (!fPoses.eof()) {
+         std::string s;
+         std::getline(fPoses,s);
+         if (!s.empty()) {
+           std::stringstream ss;
+           ss << s;
+           float t;
+           for (int i=0;i<12;i++) {
+             ss >> t;
+             all_poses_(counter,i)=t;
+          }
+          counter++;
+          if (counter>=total_img_number)
+            break;
+         }
       }
       fPoses.close();
       return true;
-    }
-    else
-      return false;
-}
+      } else
+        return false;
+   }
 
 
   bool read_label_prob_bin(const std::string label_bin) {// assumed mat size correct 
@@ -84,7 +81,6 @@ class KITTIData {
    
   void process_depth_img(const int scan_id, const cv::Mat& rgb_img, const cv::Mat& depth_img,
 		         pcl::PointCloud<pcl::PointXYZL>& cloud, la3dm::point3f& origin) {
-   
     int pix_label;
     float pix_depth;
 
