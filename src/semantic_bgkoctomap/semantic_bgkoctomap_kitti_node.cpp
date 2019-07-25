@@ -136,7 +136,8 @@ int main(int argc, char **argv) {
       map.insert_pointcloud(cloud, origin, resolution, free_resolution, max_range);
       ROS_INFO_STREAM("Scan " << scan_id << " done");
       
-      kitti_data.reproject_to_images(scan_id, depth_img, map);
+      cv::Mat depth_img_0 = cv::imread("/home/ganlu/la3dm_ws/src/semantic_3d_mapping/grid_sensor/data_kitti/depth_img/000000.png", CV_LOAD_IMAGE_ANYDEPTH);
+      kitti_data.reproject_to_images(0, depth_img_0, map);
 
       ///////// Publish Map /////////////////////
       for (auto it = map.begin_leaf(); it != map.end_leaf(); ++it) {

@@ -82,13 +82,13 @@ namespace la3dm {
         m_B += bbar;
 
         float var = get_var();
-        if (var > Occupancy::var_thresh)
-            state = State::UNKNOWN;
-        else {
-            float p = get_prob();
-            state = p > Occupancy::occupied_thresh ? State::OCCUPIED : (p < Occupancy::free_thresh ? State::FREE
+        //if (var > Occupancy::var_thresh)
+            //state = State::UNKNOWN;
+        //else {
+        float p = get_prob();
+        state = p > Occupancy::occupied_thresh ? State::OCCUPIED : (p < Occupancy::free_thresh ? State::FREE
                                                                                                    : State::UNKNOWN);
-        }
+        //}
     }
 
     /*std::ofstream &operator<<(std::ofstream &os, const Occupancy &oc) {

@@ -39,6 +39,10 @@ class KITTIData {
                            192,	128,	128,  // 9. signate
                            64,	64,	128,  // 10. fence
                            192,	192,	128;  // 11. pole
+        init_trans_to_ground_ << 1, 0, 0, 0,
+		                             0, 0, 1, 0,
+		                             0,-1, 0, 1,
+		                             0, 0, 0, 1;
       }
 
    ~KITTIData() {}
@@ -91,7 +95,14 @@ class KITTIData {
    
   void process_depth_img(const int scan_id, const cv::Mat& rgb_img, const cv::Mat& depth_img,
                          pcl::PointCloud<pcl::PointXYZL>& cloud, la3dm::point3f& origin) {
-    
+ 
+    Eigen::VectorXf curr_posevec = all_poses_.row(scan_id);
+    Eigen::MatrixXf curr_pose = Eigen::Map<MatrixXf_row>(curr_posevec.data(), 3, 4);
+    Eigen::Matrix4f transform = Eigen::Matrix4f::Identity();
+    transform.block(0,0,3,4) = curr_pose;
+    Eigen::Matrix4f new_transform = init_trans_to_ground_ * transform;
+    //new_transform(2,3) = 1.0;
+   
     //pcl::PointCloud<pcl::PointXYZL> cloud;
     for (int32_t i = 0; i < im_width_ * im_height_; ++i) {
       int ux = i % im_width_;
@@ -101,6 +112,11 @@ class KITTIData {
 
       int pix_label;
       frame_label_prob_.row(i).maxCoeff(&pix_label);
+      if (pix_label == 1)  // NOTE: don't project sky label
+        continue;
+
+      if (pix_depth > 20.0)
+        continue;
 
       if (pix_depth > 0.1) {
         pcl::PointXYZL pt;
@@ -111,6 +127,14 @@ class KITTIData {
         //pt.g = rgb_img.at<cv::Vec3b>(uy,ux)[1];
         //pt.b = rgb_img.at<cv::Vec3b>(uy,ux)[0];
         pt.label = pix_label + 1;  // NOTE: valid label starts from 0
+        
+        //Eigen::Vector4f global_pt4 = transform * Eigen::Vector4f(pt.x, pt.y, pt.z, 1);
+        Eigen::Vector4f global_pt4 = new_transform * Eigen::Vector4f(pt.x, pt.y, pt.z, 1);
+        Eigen::Vector3f global_pt3 = global_pt4.head(3) / global_pt4(3);
+        pt.x = global_pt3(0);
+        pt.y = global_pt3(1);
+        pt.z = global_pt3(2);
+        
         cloud.points.push_back(pt);
       }
     }
@@ -118,23 +142,32 @@ class KITTIData {
     cloud.height = 1;
 
     // Transform point cloud
-    Eigen::VectorXf curr_posevec = all_poses_.row(scan_id);
+    /*Eigen::VectorXf curr_posevec = all_poses_.row(scan_id);
     Eigen::MatrixXf curr_pose = Eigen::Map<MatrixXf_row>(curr_posevec.data(), 3, 4);
     Eigen::Matrix4f transform = Eigen::Matrix4f::Identity();
     transform.block(0,0,3,4) = curr_pose;
     std::cout << transform << std::endl;
-    pcl::transformPointCloud (cloud, cloud, transform);
-    //pcl::io::savePCDFileASCII ("test_pcd.pcd", cloud);
+    //pcl::transformPointCloud (cloud, cloud, transform);
+    Eigen::Matrix4f new_transform = init_trans_to_ground_ * transform;
+    pcl::transformPointCloud (cloud, cloud, new_transform);
+    //pcl::io::savePCDFileASCII ("test_pcd.pcd", cloud);*/
     
     // Set sensor origin
-    origin.x() = transform(0, 3);
-    origin.y() = transform(1, 3);
-    origin.z() = transform(2, 3);
+    origin.x() = new_transform(0, 3);
+    origin.y() = new_transform(1, 3);
+    origin.z() = new_transform(2, 3);
   }
 
 
   void reproject_to_images(const int scan_id, const cv::Mat& depth_img, la3dm::SemanticBGKOctoMap& map) {
-    
+ 
+    Eigen::VectorXf curr_posevec = all_poses_.row(scan_id);
+    Eigen::MatrixXf curr_pose = Eigen::Map<MatrixXf_row>(curr_posevec.data(), 3, 4);
+    Eigen::Matrix4f transform = Eigen::Matrix4f::Identity();
+    transform.block(0,0,3,4) = curr_pose;
+    Eigen::Matrix4f new_transform = init_trans_to_ground_ * transform;
+    new_transform(2,3) = 1.0;
+   
     cv::Mat reproj_label_maps = cv::Mat(cv::Size(im_width_, im_height_), CV_8UC1,cv::Scalar(255));
     cv::Mat reproj_label_colors = cv::Mat(cv::Size(im_width_, im_height_), CV_8UC3,cv::Scalar(200,200,200));
     for (int32_t i = 0; i < im_width_ * im_height_; ++i) {
@@ -156,11 +189,8 @@ class KITTIData {
         pt.z = pix_depth;
 
         // Transform point
-        Eigen::VectorXf curr_posevec = all_poses_.row(scan_id);
-        Eigen::MatrixXf curr_pose = Eigen::Map<MatrixXf_row>(curr_posevec.data(), 3, 4);
-        Eigen::Matrix4f transform = Eigen::Matrix4f::Identity();
-        transform.block(0,0,3,4) = curr_pose;
-        Eigen::Vector4f global_pt4 = transform * Eigen::Vector4f(pt.x, pt.y, pt.z, 1);
+        //Eigen::Vector4f global_pt4 = transform * Eigen::Vector4f(pt.x, pt.y, pt.z, 1);
+        Eigen::Vector4f global_pt4 = new_transform * Eigen::Vector4f(pt.x, pt.y, pt.z, 1);
         Eigen::Vector3f global_pt3 = global_pt4.head(3) / global_pt4(3);
         la3dm::SemanticOcTreeNode node = map.search(global_pt3(0), global_pt3(1), global_pt3(2));
        
@@ -187,7 +217,8 @@ class KITTIData {
     float depth_scaling_;
     int num_class_;
     MatrixXf_row frame_label_prob_;
-    Eigen::MatrixXi label_to_color_; 
+    Eigen::MatrixXi label_to_color_;
+    Eigen::Matrix4f init_trans_to_ground_; 
     Eigen::MatrixXf all_poses_;
 };
 

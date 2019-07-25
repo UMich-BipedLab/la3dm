@@ -6,7 +6,7 @@ label_bin_prefix: label_binary
 
 # Information about range-finder data
 scan_num: 19 # How many scans to use
-max_range: 20 # Sensor max range (m)
+max_range: -1 # Sensor max range (m)
 
 # Bounds on map height
 min_z: 0

@@ -474,9 +474,10 @@ namespace la3dm {
     SemanticOcTreeNode SemanticBGKOctoMap::search(point3f p) const {
         Block *block = search(block_to_hash_key(p));
         if (block == nullptr) {
-          //std::cout << "null" << std::endl;
+          //std::cout << "null: " << p << std::endl;
           return SemanticOcTreeNode();
         } else {
+          //std::cout << p << std::endl;
           return SemanticOcTreeNode(block->search(p));
         }
     }
