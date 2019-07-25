@@ -53,21 +53,21 @@ namespace la3dm {
 	    assert(trained == true);
 	    MatrixKType Ks;
 
-	    //covCountingSensorModel(_xs, x, Ks);
-	    covSparse(_xs, x, Ks);
+	    covCountingSensorModel(_xs, x, Ks);
+	    //covSparse(_xs, x, Ks);
 	    
 	    ybars.resize(_xs.rows());
 	    for (int r = 0; r < _xs.rows(); ++r)
 	      ybars[r].resize(nc);
 
-            MatrixYType _y_vec = Eigen::Map<const MatrixYType>(y_vec.data(), y_vec.size(), 1);
-	    for (int k = 0; k < nc; ++k) {
-	      for (int i = 0; i < y_vec.size(); ++i) {
-	        if (y_vec[i] == k)
-		  _y_vec(i, 0) = 1;
-		else
-		  _y_vec(i, 0) = 0;
-	      }
+        MatrixYType _y_vec = Eigen::Map<const MatrixYType>(y_vec.data(), y_vec.size(), 1);
+        for (int k = 0; k < nc; ++k) {
+          for (int i = 0; i < y_vec.size(); ++i) {
+            if (y_vec[i] == k)
+              _y_vec(i, 0) = 1;
+            else
+              _y_vec(i, 0) = 0;
+          }
 	      
 	      MatrixYType _ybar;
 	      _ybar = (Ks * _y_vec);

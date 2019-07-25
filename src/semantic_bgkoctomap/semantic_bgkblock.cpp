@@ -102,8 +102,8 @@ namespace la3dm {
 
     float Block::resolution = 0.1f;
     //float Block::size = 0.8f;
-    float Block::size = 0.4f;  // NOTE: for block depth == 3
-    //float Block::size = 0.1f;
+    //float Block::size = 0.4f;  // NOTE: for block depth == 3
+    float Block::size = 0.1f;
     unsigned short Block::cell_num = static_cast<unsigned short>(round(Block::size / Block::resolution));
 
     std::unordered_map<OcTreeHashKey, point3f> Block::key_loc_map;
