@@ -195,7 +195,7 @@ namespace la3dm {
                     continue;
 
                	vector<vector<float>> ybars;
-		bgk->second->predict(xs, ybars);
+		            bgk->second->predict(xs, ybars);
 
                 int j = 0;
                 for (auto leaf_it = block->begin_leaf(); leaf_it != block->end_leaf(); ++leaf_it, ++j) {
@@ -474,10 +474,10 @@ namespace la3dm {
     SemanticOcTreeNode SemanticBGKOctoMap::search(point3f p) const {
         Block *block = search(block_to_hash_key(p));
         if (block == nullptr) {
-          std::cout << "null" << std::endl;
-            return SemanticOcTreeNode();
+          //std::cout << "null" << std::endl;
+          return SemanticOcTreeNode();
         } else {
-            return SemanticOcTreeNode(block->search(p));
+          return SemanticOcTreeNode(block->search(p));
         }
     }
 

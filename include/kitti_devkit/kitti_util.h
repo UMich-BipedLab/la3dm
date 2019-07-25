@@ -27,6 +27,18 @@ class KITTIData {
       , depth_scaling_(depth_scaling)
       , num_class_(num_class) {
         frame_label_prob_.resize(im_width_*im_height_, num_class_ - 1);  // NOTE: valid label starts from 0
+        label_to_color_.resize(num_class_ - 1, 3);
+        label_to_color_ << 128,	0,	0,     // 1. building  // our 11 class  //TODO this conversion should be the same with all other places
+                           128,	128,	128,// 2. sky
+                           128,	64,	128,  // 3. road
+                           128,	128,	0,    // 4. vegetation
+                           0,	0,	192,  // 5. sidewalk
+                           64,	0,	128,  // 6. car
+                           64,	64,	0,    // 7. pedestrian
+                           0,	128,	192,  // 8 cyclist
+                           192,	128,	128,  // 9. signate
+                           64,	64,	128,  // 10. fence
+                           192,	192,	128;  // 11. pole
       }
 
    ~KITTIData() {}
@@ -120,6 +132,51 @@ class KITTIData {
     origin.z() = transform(2, 3);
   }
 
+
+  void reproject_to_images(const int scan_id, const cv::Mat& depth_img, la3dm::SemanticBGKOctoMap& map) {
+    
+    cv::Mat reproj_label_maps = cv::Mat(cv::Size(im_width_, im_height_), CV_8UC1,cv::Scalar(255));
+    cv::Mat reproj_label_colors = cv::Mat(cv::Size(im_width_, im_height_), CV_8UC3,cv::Scalar(200,200,200));
+    for (int32_t i = 0; i < im_width_ * im_height_; ++i) {
+      int ux = i % im_width_;
+      int uy = i / im_width_;
+      if (ux >= im_width_-1 ||  ux <= 0 || uy >= im_height_-1 ||  uy<= 0)
+        continue;
+
+      float pix_depth = (float) depth_img.at<uint16_t>(uy, ux);
+      pix_depth = pix_depth / depth_scaling_;
+
+      int pix_label;
+      frame_label_prob_.row(i).maxCoeff(&pix_label);
+
+      if (pix_depth > 0.1) {
+        pcl::PointXYZL pt;
+        pt.x = (ux - cx_) * (1.0 / fx_) * pix_depth;
+        pt.y = (uy - cy_) * (1.0 / fy_) * pix_depth;
+        pt.z = pix_depth;
+
+        // Transform point
+        Eigen::VectorXf curr_posevec = all_poses_.row(scan_id);
+        Eigen::MatrixXf curr_pose = Eigen::Map<MatrixXf_row>(curr_posevec.data(), 3, 4);
+        Eigen::Matrix4f transform = Eigen::Matrix4f::Identity();
+        transform.block(0,0,3,4) = curr_pose;
+        Eigen::Vector4f global_pt4 = transform * Eigen::Vector4f(pt.x, pt.y, pt.z, 1);
+        Eigen::Vector3f global_pt3 = global_pt4.head(3) / global_pt4(3);
+        la3dm::SemanticOcTreeNode node = map.search(global_pt3(0), global_pt3(1), global_pt3(2));
+       
+        if (node.get_state() == la3dm::State::OCCUPIED){
+          int pix_label = node.get_semantics();
+          reproj_label_maps.at<uint8_t>(uy, ux) = (uint8_t) pix_label;
+          reproj_label_colors.at<cv::Vec3b>(uy, ux)[0] = (uint8_t) label_to_color_(pix_label - 1, 2);
+          reproj_label_colors.at<cv::Vec3b>(uy, ux)[1] = (uint8_t) label_to_color_(pix_label - 1, 1);
+          reproj_label_colors.at<cv::Vec3b>(uy, ux)[2] = (uint8_t) label_to_color_(pix_label - 1, 0);
+        }
+      }
+    }
+    cv::imwrite( "/home/ganlu/reproj_label_maps.png", reproj_label_maps);
+    cv::imwrite( "/home/ganlu/reproj_label_colors.png", reproj_label_colors);
+  }
+
   private:
     int im_width_;
     int im_height_;
@@ -130,6 +187,7 @@ class KITTIData {
     float depth_scaling_;
     int num_class_;
     MatrixXf_row frame_label_prob_;
+    Eigen::MatrixXi label_to_color_; 
     Eigen::MatrixXf all_poses_;
 };
 
