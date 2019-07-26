@@ -28,17 +28,18 @@ class KITTIData {
       , num_class_(num_class) {
         frame_label_prob_.resize(im_width_*im_height_, num_class_ - 1);  // NOTE: valid label starts from 0
         label_to_color_.resize(num_class_ - 1, 3);
-        label_to_color_ << 128,	0,	0,     // 1. building  // our 11 class  //TODO this conversion should be the same with all other places
-                           128,	128,	128,// 2. sky
-                           128,	64,	128,  // 3. road
-                           128,	128,	0,    // 4. vegetation
-                           0,	0,	192,  // 5. sidewalk
-                           64,	0,	128,  // 6. car
-                           64,	64,	0,    // 7. pedestrian
-                           0,	128,	192,  // 8 cyclist
-                           192,	128,	128,  // 9. signate
-                           64,	64,	128,  // 10. fence
-                           192,	192,	128;  // 11. pole
+        label_to_color_ << 128,	  0,	 0,  // 0 building
+                           128, 128, 128,  // 1 sky
+                           128,	 64, 128,  // 2 road
+                           128,	128,	 0,  // 3 vegetation
+                             0,	  0, 192,  // 4 sidewalk
+                            64,	  0, 128,  // 5 car
+                            64,	 64,	 0,  // 6 pedestrian
+                             0,	128, 192,  // 7 cyclist
+                           192,	128, 128,  // 8 signate
+                            64,	 64, 128,  // 9 fence
+                           192,	192, 128;  // 10 pole
+
         init_trans_to_ground_ << 1, 0, 0, 0,
 		                             0, 0, 1, 0,
 		                             0,-1, 0, 1,
@@ -101,7 +102,6 @@ class KITTIData {
     Eigen::Matrix4f transform = Eigen::Matrix4f::Identity();
     transform.block(0,0,3,4) = curr_pose;
     Eigen::Matrix4f new_transform = init_trans_to_ground_ * transform;
-    //new_transform(2,3) = 1.0;
    
     //pcl::PointCloud<pcl::PointXYZL> cloud;
     for (int32_t i = 0; i < im_width_ * im_height_; ++i) {
@@ -166,7 +166,6 @@ class KITTIData {
     Eigen::Matrix4f transform = Eigen::Matrix4f::Identity();
     transform.block(0,0,3,4) = curr_pose;
     Eigen::Matrix4f new_transform = init_trans_to_ground_ * transform;
-    new_transform(2,3) = 1.0;
    
     cv::Mat reproj_label_maps = cv::Mat(cv::Size(im_width_, im_height_), CV_8UC1,cv::Scalar(255));
     cv::Mat reproj_label_colors = cv::Mat(cv::Size(im_width_, im_height_), CV_8UC3,cv::Scalar(200,200,200));
@@ -182,6 +181,9 @@ class KITTIData {
       int pix_label;
       frame_label_prob_.row(i).maxCoeff(&pix_label);
 
+      if (pix_depth > 40.0)
+        continue;
+
       if (pix_depth > 0.1) {
         pcl::PointXYZL pt;
         pt.x = (ux - cx_) * (1.0 / fx_) * pix_depth;
@@ -196,7 +198,7 @@ class KITTIData {
        
         if (node.get_state() == la3dm::State::OCCUPIED){
           int pix_label = node.get_semantics();
-          reproj_label_maps.at<uint8_t>(uy, ux) = (uint8_t) pix_label;
+          reproj_label_maps.at<uint8_t>(uy, ux) = (uint8_t) pix_label - 1;  // Note: valid label starts from 0 for evaluation
           reproj_label_colors.at<cv::Vec3b>(uy, ux)[0] = (uint8_t) label_to_color_(pix_label - 1, 2);
           reproj_label_colors.at<cv::Vec3b>(uy, ux)[1] = (uint8_t) label_to_color_(pix_label - 1, 1);
           reproj_label_colors.at<cv::Vec3b>(uy, ux)[2] = (uint8_t) label_to_color_(pix_label - 1, 0);
