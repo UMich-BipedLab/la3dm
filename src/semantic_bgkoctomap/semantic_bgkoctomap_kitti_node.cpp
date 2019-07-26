@@ -137,12 +137,12 @@ int main(int argc, char **argv) {
       map.insert_pointcloud(cloud, origin, resolution, free_resolution, max_range);
       ROS_INFO_STREAM("Scan " << scan_id << " done");
       
-      cv::Mat depth_img_0 = cv::imread("/home/ganlu/la3dm_ws/src/semantic_3d_mapping/grid_sensor/data_kitti/depth_img/000000.png", CV_LOAD_IMAGE_ANYDEPTH);
+      cv::Mat depth_img_0 = cv::imread("/home/ganlu/la3dm_ws/src/semantic_3d_mapping/grid_sensor/data_kitti_15/depth_img/000000.png", CV_LOAD_IMAGE_ANYDEPTH);
       kitti_data.reproject_to_images(0, depth_img_0, map);
       std::cout << "Reprojection done." << std::endl;
       
       ///////// Publish Map /////////////////////
-      /*for (auto it = map.begin_leaf(); it != map.end_leaf(); ++it) {
+      for (auto it = map.begin_leaf(); it != map.end_leaf(); ++it) {
         if (it.get_node().get_state() == la3dm::State::OCCUPIED) {
           la3dm::point3f p = it.get_loc();
           int semantics = it.get_node().get_semantics();
@@ -150,7 +150,7 @@ int main(int argc, char **argv) {
         }
       }
       m_pub.publish();
-      std::cout << "Publish done." << std::endl;*/
+      std::cout << "Publish done." << std::endl;
     }
     ros::Time end = ros::Time::now();
     ROS_INFO_STREAM("Mapping finished in " << (end - start).toSec() << "s");
