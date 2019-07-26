@@ -45,7 +45,13 @@ namespace la3dm {
         Block::size = this->block_size;
         Block::key_loc_map = init_key_loc_map(resolution, block_depth);
         Block::index_map = init_index_map(Block::key_loc_map, block_depth);
-
+        
+        // Bug fixed
+        Block::cell_num = static_cast<unsigned short>(round(Block::size / Block::resolution));
+        std::cout << "block::resolution: " << Block::resolution << std::endl;
+        std::cout << "block::size: " << Block::size << std::endl;
+        std::cout << "block::cell_num: " << Block::cell_num << std::endl;
+        
         SemanticOcTree::max_depth = block_depth;
 
         SemanticOcTreeNode::sf2 = sf2;
@@ -188,7 +194,7 @@ namespace la3dm {
             }
             //std::cout << "xs size: "<<xs.size() << std::endl;
 
-           /* ExtendedBlock eblock = block->get_extended_block();
+            /*ExtendedBlock eblock = block->get_extended_block();
             for (auto block_it = eblock.cbegin(); block_it != eblock.cend(); ++block_it) {
                 auto bgk = bgk_arr.find(*block_it);
                 if (bgk == bgk_arr.end())
@@ -206,7 +212,7 @@ namespace la3dm {
                 }
             }*/
 
-	      // For counting sensor model
+	          // For counting sensor model
             auto bgk = bgk_arr.find(key);
             if (bgk == bgk_arr.end())
               continue;
