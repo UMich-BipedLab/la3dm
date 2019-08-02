@@ -32,6 +32,9 @@ int main(int argc, char **argv) {
     std::string left_img_prefix;
     std::string depth_img_prefix;
     std::string label_bin_prefix;
+    std::string camera_pose_file;
+    std::string evaluation_list_file;
+    std::string reproj_img_prefix;
     int scan_num = 0;
     double max_range = -1;
     int image_width = 1226;
@@ -42,6 +45,7 @@ int main(int argc, char **argv) {
     float center_y = 183.1104;
     float depth_scaling = 2000;
     int num_class = 12;
+    bool reproject = false;
 
     nh.param<std::string>("topic", map_topic, map_topic);
     nh.param<double>("resolution", resolution, resolution);
@@ -64,6 +68,9 @@ int main(int argc, char **argv) {
     nh.param<std::string>("left_img_prefix", left_img_prefix, left_img_prefix);
     nh.param<std::string>("depth_img_prefix", depth_img_prefix, depth_img_prefix);
     nh.param<std::string>("label_bin_prefix", label_bin_prefix, label_bin_prefix);
+    nh.param<std::string>("camera_pose_file", camera_pose_file, camera_pose_file);
+    nh.param<std::string>("evaluation_list_file", evaluation_list_file, evaluation_list_file);
+    nh.param<std::string>("reproj_img_prefix", reproj_img_prefix, reproj_img_prefix);
     nh.param<int>("scan_num", scan_num, scan_num);
     nh.param<double>("max_range", max_range, max_range);
     nh.param<int>("image_width", image_width, image_width);
@@ -74,6 +81,7 @@ int main(int argc, char **argv) {
     nh.param<float>("center_y", center_y, center_y);
     nh.param<float>("depth_scaling", depth_scaling, depth_scaling);
     nh.param<int>("num_class", num_class, num_class);
+    nh.param<bool>("reproject", reproject, reproject);
 
     ROS_INFO_STREAM("Parameters:" << std::endl <<
 	    "topic: " << map_topic << std::endl <<
@@ -97,6 +105,9 @@ int main(int argc, char **argv) {
       "left_img_prefix: " << left_img_prefix << std::endl <<
       "depth_img_prefix: " << depth_img_prefix << std::endl <<
       "label_bin_prefix: " << label_bin_prefix << std::endl <<
+      "camera_pose_file: " << camera_pose_file << std::endl <<
+      "evaluation_list_file: " << evaluation_list_file << std::endl <<
+      "reproj_img_prefix: " << reproj_img_prefix << std::endl <<
       "scan_sum: " << scan_num << std::endl <<
       "max_range: " << max_range << std::endl <<
       "image_width: " << image_width << std::endl <<
@@ -106,57 +117,50 @@ int main(int argc, char **argv) {
       "center_x: " << center_x << std::endl <<
       "center_y: " << center_y << std::endl <<
       "depth_scaling: " << depth_scaling << std::endl <<
-      "num_class: " << num_class
+      "num_class: " << num_class << std::endl <<
+      "reproject: " << reproject
       );
 
 
     KITTIData kitti_data(image_width, image_height, focal_x, focal_y, center_x, center_y, depth_scaling, num_class);
-    kitti_data.read_all_poses(dir + "/" + "CameraTrajectory.txt", scan_num);
-    la3dm::SemanticBGKOctoMap map(resolution, block_depth, sf2, ell, num_class, free_thresh, occupied_thresh, var_thresh, prior_A, prior_B);
-    la3dm::MarkerArrayPub m_pub(nh, map_topic, 0.1f);
+    std::string camera_pose_name(dir + "/" + camera_pose_file);
+    if (!kitti_data.read_camera_poses(camera_pose_name))
+      return 0;
+    if (reproject) {
+      std::string evaluation_list_name(dir + "/" + evaluation_list_file);
+      if (!kitti_data.read_evaluation_list(evaluation_list_name))
+        return 0;
+      std::string reproj_img_folder(dir + "/" + reproj_img_prefix + "/");
+      kitti_data.set_up_reprojection(reproj_img_folder);
+    }
 
     ///////// Build Map /////////////////////
+    la3dm::SemanticBGKOctoMap map(resolution, block_depth, sf2, ell, num_class, free_thresh, occupied_thresh, var_thresh, prior_A, prior_B);
+    la3dm::MarkerArrayPub m_pub(nh, map_topic, 0.1f);
     ros::Time start = ros::Time::now();
     for (int scan_id = 0; scan_id <= scan_num; ++scan_id) {
       la3dm::PCLPointCloud cloud;
       la3dm::point3f origin;
         
       char scan_id_c[256];
-      sprintf(scan_id_c, "%06d", scan_id);  // format into 6 digit
+      sprintf(scan_id_c, "%06d", scan_id);
       std::string scan_id_s(scan_id_c);
-      std::string left_img_name(dir + "/" + left_img_prefix + "/" + scan_id_s + ".png");
       std::string depth_img_name(dir + "/" + depth_img_prefix + "/" + scan_id_s + ".png");
       std::string label_bin_name(dir + "/" + label_bin_prefix + "/" + scan_id_s + ".bin");
 
-    	cv::Mat left_img = cv::imread(left_img_name, 1);
     	cv::Mat depth_img = cv::imread(depth_img_name, CV_LOAD_IMAGE_ANYDEPTH);
     	kitti_data.read_label_prob_bin(label_bin_name);
-      kitti_data.process_depth_img(scan_id, left_img, depth_img,cloud, origin);
-      std::cout << "Process depth img done." << std::endl;
+      kitti_data.process_depth_img(scan_id, depth_img, cloud, origin);
       
       map.insert_pointcloud(cloud, origin, resolution, free_resolution, max_range);
       ROS_INFO_STREAM("Scan " << scan_id << " done");
      
-      kitti_data.reproject_images(scan_id, map); 
-     // cv::Mat depth_img_0 = cv::imread("/home/ganlu/la3dm_ws/src/semantic_3d_mapping/grid_sensor/data_kitti_15/depth_img/000000.png", CV_LOAD_IMAGE_ANYDEPTH);
-      //kitti_data.reproject_to_images(0, depth_img_0, map);
-      std::cout << "Reprojection done." << std::endl;
-      
-      ///////// Publish Map /////////////////////
-      /*for (auto it = map.begin_leaf(); it != map.end_leaf(); ++it) {
-        if (it.get_node().get_state() == la3dm::State::OCCUPIED) {
-          la3dm::point3f p = it.get_loc();
-          int semantics = it.get_node().get_semantics();
-          m_pub.insert_point3d_semantics(p.x(), p.y(), p.z(), it.get_size(), semantics);
-        }
-      }
-      m_pub.publish();
-      std::cout << "Publish done." << std::endl;*/
+      if (reproject)
+        kitti_data.reproject_imgs(scan_id, map); 
     }
     ros::Time end = ros::Time::now();
     ROS_INFO_STREAM("Mapping finished in " << (end - start).toSec() << "s");
         
     ros::spin();
-
     return 0;
 }

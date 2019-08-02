@@ -3,6 +3,10 @@ dir: /home/ganlu/la3dm_ws/src/semantic_3d_mapping/grid_sensor/data_kitti_15
 left_img_prefix: rgb_img
 depth_img_prefix: depth_img
 label_bin_prefix: label_binary
+camera_pose_file: CameraTrajectory.txt
+evaluation_list_file: evaluatioList.txt
+reproj_img_prefix: reproj_img
+reproject: true
 
 # Information about range-finder data
 scan_num: 99 # How many scans to use
