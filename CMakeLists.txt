@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(la3dm)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -O3")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -g")
 
 find_package(OpenMP)
 if (OPENMP_FOUND)
@@ -13,7 +13,7 @@ endif()
 find_package(OpenCV REQUIRED)
 
 ## Enable OpenMP
-add_definitions(-DOPENMP)
+#add_definitions(-DOPENMP)
 
 ## Enable Debug Info
 #add_definitions(-DDEBUG)
@@ -30,6 +30,7 @@ find_package(catkin REQUIRED COMPONENTS
         pcl_ros
         roscpp
         octomap_ros
+        tf_conversions
 )
 
 ## System dependencies are found with CMake's conventions
@@ -119,7 +120,7 @@ include_directories(
         include/gpoctomap
         include/bgkoctomap
         include/common
-        include/kitti_devkit
+        include/dataset_devkit
         ${catkin_INCLUDE_DIRS}
         ${OCTOMAP_INCLUDE_DIRS}
         ${OpenCV_INCLUDE_DIRS}
@@ -164,6 +165,12 @@ add_executable(semantic_bgkoctomap_kitti_node
     src/semantic_bgkoctomap/semantic_bgkoctomap_kitti_node.cpp
 )
 
+add_executable(semantic_bgkoctomap_nclt_node 
+  ${SEMANTIC_BGK_SOURCE_FILES}
+    ${COMMON_SOURCE_FILES}
+    src/semantic_bgkoctomap/semantic_bgkoctomap_nclt_node.cpp
+)
+
 add_executable(bgkoctomap_static_node 
     ${BGK_SOURCE_FILES}
     ${COMMON_SOURCE_FILES}
@@ -200,6 +207,10 @@ add_executable(gpoctomap_server
 target_link_libraries(semantic_bgkoctomap_kitti_node
         ${catkin_LIBRARIES}
         ${OpenCV_LIBRARIES}
+)
+
+target_link_libraries(semantic_bgkoctomap_nclt_node
+        ${catkin_LIBRARIES}
 )
 
 target_link_libraries(bgkoctomap_static_node

@@ -41,6 +41,90 @@ namespace la3dm {
       return color;
     }
 
+    std_msgs::ColorRGBA NCLTSemanticMapColor(int c) {
+      std_msgs::ColorRGBA color;
+      color.a = 1.0;
+
+      switch (c) {
+        case 1:  // background
+          color.r = 0;
+          color.g = 0;
+          color.b = 0;
+          break;
+        case 2:  // water
+          color.r = 30.0 / 255;
+          color.g = 144.0 / 255;
+          color.b = 250.0 / 255;
+          break;
+        case 3:  // road
+          color.r = 250.0 / 255;
+          color.g = 250.0 / 255;
+          color.b = 250.0 / 255;
+          break;
+        case 4:  // sidewalk
+          color.r = 250.0 / 255;
+          color.g = 250.0 / 255;
+          color.b = 250.0 / 255;
+          break;
+        case 5:  // terrain
+          color.r = 128.0 / 255;
+          color.g = 128.0 / 255;
+          color.b = 0;
+          break;
+        case 6:  // building
+          color.r = 250.0 / 255;
+          color.g = 128.0 / 255;
+          color.b = 0;
+          break;
+        case 7:  // vegetation
+          color.r = 107.0 / 255;
+          color.g = 142.0/ 255;
+          color.b = 35.0 / 255;
+          break;
+        case 8:  // car
+          color.r = 0;
+          color.g = 0;
+          color.b = 142.0 / 255;
+          break;
+        case 9:  // person
+          color.r = 220.0 / 255;
+          color.g = 20.0 / 255;
+          color.b = 60.0 / 255;
+          break;
+        case 10:  // bike
+          color.r = 119.0 / 255;
+          color.g = 11.0 / 255;
+          color.b = 32.0/ 255;
+          break;
+        case 11:  // pole
+          color.r = 192.0 / 255;
+          color.g = 192.0 / 255;
+          color.b = 192.0 / 255;
+          break;
+        case 12:  // stair
+          color.r = 123.0 / 255;
+          color.g = 104.0 / 255;
+          color.b = 238.0 / 255;
+          break;
+        case 13:  // traffic sign
+          color.r = 250.0 / 255;
+          color.g = 250.0 / 255;
+          color.b = 0;
+          break;
+        case 14:  // sky
+          color.r = 135.0 / 255;
+          color.g = 206.0 / 255;
+          color.b = 235.0 / 255;
+          break;
+        default:
+          color.r = 1;
+          color.g = 1;
+          color.b = 1;
+          break;
+      }
+      return color;
+    }
+
     std_msgs::ColorRGBA KITTISemanticMapColor(int c) {
       std_msgs::ColorRGBA color;
       color.a = 1.0;
@@ -232,7 +316,7 @@ namespace la3dm {
                 depth = (int) log2(size / 0.1);
 
             msg->markers[depth].points.push_back(center);
-            msg->markers[depth].colors.push_back(KITTISemanticMapColor(c));
+            msg->markers[depth].colors.push_back(NCLTSemanticMapColor(c));
         }
 
         void insert_point3d_variance(float x, float y, float z, float min_v, float max_v, float size, float var) {
