@@ -15,7 +15,7 @@ ds_resolution: 0.1 # Downsampling factor
 
 # Free/Occupied Thresholds
 free_thresh: free_thresh
-occupied_thresh: 0.7
+occupied_thresh: 0.5
 var_thresh: 0.09 # Threshold on variance to distinguish known/unknown
 
 # BGK Inference positive and negative class prior pseudocounts

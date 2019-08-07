@@ -78,6 +78,8 @@ int main(int argc, char **argv) {
     //la3dm::SemanticBGKOctoMap* map = new la3dm::SemanticBGKOctoMap(resolution, block_depth, sf2, ell, 15, free_thresh, occupied_thresh, var_thresh, prior_A, prior_B);
     
     NCLTData<14> nclt_data(nh, resolution, block_depth, sf2, ell, 15, free_thresh, occupied_thresh, var_thresh);
+    nclt_data.read_input_list("/home/ganlu/Datasets/nclt/nclt_0429_pcd/input_list.txt");
+    nclt_data.process_input("/home/ganlu/Datasets/nclt/nclt_0429_pcd/");
     ros::Subscriber sub = nh.subscribe("/labeled_pointcloud", 100, &NCLTData<14>::PointCloudCallback, &nclt_data);
 
     
