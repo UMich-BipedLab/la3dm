@@ -6,7 +6,6 @@
 
 #include "nclt_util.h"
 
-
 int main(int argc, char **argv) {
     ros::init(argc, argv, "semantic_bgkoctomap_nclt_node");
     ros::NodeHandle nh("~");
@@ -27,9 +26,11 @@ int main(int argc, char **argv) {
     float prior_A = 1.0f;
     float prior_B = 1.0f;
     
-    // KITTI 05
+    // NCLT
+    std::string dir;
+    std::string lidar_pose_file;
     double max_range = -1;
-    int num_class = 12;
+    int num_class = 15;
 
     nh.param<std::string>("topic", map_topic, map_topic);
     nh.param<double>("resolution", resolution, resolution);
@@ -47,7 +48,9 @@ int main(int argc, char **argv) {
     nh.param<float>("prior_A", prior_A, prior_A);
     nh.param<float>("prior_B", prior_B, prior_B);
     
-    // KITTI
+    // NCLT
+    nh.param<std::string>("dir", dir, dir);
+    nh.param<std::string>("lidar_pose_file", lidar_pose_file, lidar_pose_file);
     nh.param<double>("max_range", max_range, max_range);
     nh.param<int>("num_class", num_class, num_class);
 
@@ -69,21 +72,20 @@ int main(int argc, char **argv) {
       "prior_B: " << prior_B << std::endl <<
 
       "KITTI:" << std::endl <<
+      "dir: " << dir << std::endl <<
+      "lidar_pose_file: " << lidar_pose_file << std::endl <<
       "max_range: " << max_range << std::endl <<
       "num_class: " << num_class
       );
 
     
     ///////// Build Map /////////////////////
-    //la3dm::SemanticBGKOctoMap* map = new la3dm::SemanticBGKOctoMap(resolution, block_depth, sf2, ell, 15, free_thresh, occupied_thresh, var_thresh, prior_A, prior_B);
-    
-    NCLTData<14> nclt_data(nh, resolution, block_depth, sf2, ell, 15, free_thresh, occupied_thresh, var_thresh);
-    nclt_data.read_input_list("/home/ganlu/Datasets/nclt/nclt_0429_pcd/input_list.txt");
-    nclt_data.process_input("/home/ganlu/Datasets/nclt/nclt_0429_pcd/");
+    NCLTData<14> nclt_data(nh, resolution, block_depth, sf2, ell, num_class, free_thresh, occupied_thresh, var_thresh, free_resolution, max_range, map_topic);
+    std::string lidar_pose_name = dir + lidar_pose_file;
+    nclt_data.read_lidar_poses(lidar_pose_name);
+    nclt_data.process_scans(dir);
     ros::Subscriber sub = nh.subscribe("/labeled_pointcloud", 100, &NCLTData<14>::PointCloudCallback, &nclt_data);
 
-    
-        
     ros::spin();
     return 0;
 }

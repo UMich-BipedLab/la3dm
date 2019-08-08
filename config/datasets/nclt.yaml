@@ -1,7 +1,9 @@
 # sim_unstructured config
+dir: /home/ganlu/Datasets/nclt/nclt_0429_pcd/
+lidar_pose_file: LidarPoses.txt
 
 # Information about range-finder data
-max_range: -1 # Sensor max range (m)
+max_range: 40 # Sensor max range (m)
 
 # Bounds on map height
 min_z: 0
@@ -11,3 +13,4 @@ original_size: true
 predict: false
 
 nc: 15 # Number of classes
+
