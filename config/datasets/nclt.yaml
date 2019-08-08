@@ -1,6 +1,9 @@
 # sim_unstructured config
-dir: /home/ganlu/Datasets/nclt/nclt_0429_pcd/
+dir: /home/ganlu/Datasets/nclt/
+input_data_prefix: nclt_0429_pcd/
 lidar_pose_file: LidarPoses.txt
+evaluation_data_prefix: may23_gt_pcd_txt_whole/
+evaluation_list_file: evaluation_list.txt
 
 # Information about range-finder data
 max_range: 40 # Sensor max range (m)

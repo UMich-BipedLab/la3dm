@@ -122,6 +122,7 @@ class NCLTData {
         map_->insert_pointcloud(cloud, origin, resolution_, free_resolution_, max_range_);
         std::cout << "Inserted " << scan_name << std::endl;
         publish_map();
+        query_scans(it->first);
       }
       return 1;
     }
@@ -135,6 +136,66 @@ class NCLTData {
       }
       m_pub_->publish();
     }
+
+    bool read_evaluation_list(const std::string evaluation_list_name) {
+      if (std::ifstream(evaluation_list_name)) {
+        std::ifstream fScans;
+        fScans.open(evaluation_list_name.c_str());
+        int counter = 0;
+        while (!fScans.eof()) {
+          std::string s;
+          std::getline(fScans, s);
+          if (!s.empty()) {
+            std::stringstream ss;
+            ss << s;
+            long long t;
+            ss >> t;
+            evaluation_list_.push_back(t);
+            counter++;
+          }
+        }
+        fScans.close();
+        return true;
+      } else {
+        ROS_ERROR_STREAM("Cannot open evaluation list file " << evaluation_list_name);
+        return false;
+      }
+    }
+
+    void set_up_evaluation(const std::string evaluation_folder) {
+      evaluation_folder_ = evaluation_folder;
+    }
+
+    void query_scans(long long current_time) {
+      if (check_element_in_vector(current_time, evaluation_list_) < 0)
+        return;
+      for (int i = 0 ; i < evaluation_list_.size(); ++i) {
+        long long query_time = evaluation_list_[i];
+        if (query_time <= current_time)
+          query_scan(query_time);
+      }
+    }
+
+    void query_scan(long long time) {
+      std::string gt_name = evaluation_folder_ + std::to_string(time) + ".pcd";
+      std::string result_name = evaluation_folder_ + std::to_string(time) + ".txt";
+
+      pcl::PointCloud<pcl::PointXYZL> cloud;
+      pcl::io::loadPCDFile<pcl::PointXYZL> (gt_name, cloud);
+      Eigen::Matrix4d transform = time_pose_map_[time];
+      pcl::transformPointCloud (cloud, cloud, transform);
+
+      std::ofstream result_file;
+      result_file.open(result_name);
+      for (int i = 0; i < cloud.points.size(); ++i) {
+        la3dm::SemanticOcTreeNode node = map_->search(cloud.points[i].x, cloud.points[i].y, cloud.points[i].z);
+        if (node.get_state() == la3dm::State::OCCUPIED){
+          int pred_label = node.get_semantics();
+          result_file << cloud.points[i].label << " " << pred_label - 1  << "\n";
+        }
+      }
+      result_file.close();
+    }
   
   private:
     ros::NodeHandle nh_;
@@ -145,7 +206,17 @@ class NCLTData {
     la3dm::MarkerArrayPub* m_pub_;
     tf::TransformListener listener_;
     std::ofstream pose_file_;
+    std::string evaluation_folder_;
+
     std::map<long long, Eigen::Matrix4d> time_pose_map_;
+    std::vector<long long> evaluation_list_;
+
+    int check_element_in_vector(const long long element, const std::vector<long long>& vec_check) {
+      for (int i = 0; i < vec_check.size(); ++i)
+        if (element == vec_check[i])
+          return i;
+      return -1;
+    }
 };
 
 #endif // LA3DM_NCLT_UTIL_H
