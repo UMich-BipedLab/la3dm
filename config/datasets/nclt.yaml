@@ -1,12 +1,13 @@
 # sim_unstructured config
-dir: /home/ganlu/Datasets/nclt/
+dir: /home/ganlu/la3dm_ws/src/la3dm/data/nclt/
 input_data_prefix: nclt_0429_pcd/
-lidar_pose_file: LidarPoses.txt
-evaluation_data_prefix: may23_gt_pcd_txt_whole/
+lidar_pose_file: lidar_poses.txt
 evaluation_list_file: evaluation_list.txt
+gt_data_prefix: nclt_0429_gt/
+evaluation_result_prefix: nclt_0429_evaluation/
 
 # Information about range-finder data
-max_range: 40 # Sensor max range (m)
+max_range: -1 # Sensor max range (m)
 
 # Bounds on map height
 min_z: 0
@@ -15,5 +16,4 @@ max_z: 4.3
 original_size: true
 predict: false
 
-nc: 15 # Number of classes
-
+nc: 14 # Number of classes

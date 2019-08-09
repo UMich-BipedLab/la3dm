@@ -9,7 +9,7 @@
     <arg name="data_config" value="$(find la3dm)/config/datasets/"/>
 
     <!--Start the LA3DM node -->
-    <node pkg="la3dm" type="$(arg method)_nclt_node" name="la3dm_nclt" output="screen" launch-prefix="xterm -e gdb --args">
+    <node pkg="la3dm" type="$(arg method)_nclt_node" name="la3dm_nclt" output="screen">
 
         <!-- Load method configuration from file -->
         <rosparam file="$(arg method_config)/$(arg method).yaml" command="load"/>

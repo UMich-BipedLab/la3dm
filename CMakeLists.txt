@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(la3dm)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -g")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -o3")
 
 find_package(OpenMP)
 if (OPENMP_FOUND)
@@ -13,7 +13,7 @@ endif()
 find_package(OpenCV REQUIRED)
 
 ## Enable OpenMP
-#add_definitions(-DOPENMP)
+add_definitions(-DOPENMP)
 
 ## Enable Debug Info
 #add_definitions(-DDEBUG)

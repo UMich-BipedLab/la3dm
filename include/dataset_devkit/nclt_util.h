@@ -46,6 +46,11 @@ class NCLTData {
         pt.y = cloud_msg->points[i].y;
         pt.z = cloud_msg->points[i].z;
         pt.label = cloud_msg->channels[0].values[i];
+        
+        if (pt.x * pt.x + pt.y * pt.y + pt.z * pt.z > 100 * 100)
+          continue;
+        if (pt.label == 0 || pt.label == 8 || pt.label == 13)  // Note: don't project background, person and sky
+          continue;
         cloud.push_back(pt);
       }
 
@@ -64,18 +69,19 @@ class NCLTData {
 
       std::string cloud_name = std::to_string(cloud_msg_time) + ".pcd";
       pcl::io::savePCDFileASCII(cloud_name, cloud);
-      
+
       Eigen::Affine3d t_eigen;
       tf::transformTFToEigen(transform, t_eigen);
       Eigen::Matrix4d t_matrix = t_eigen.matrix();
-      pose_file_.open("LidarPoses.txt", std::ios::app);
+      pose_file_.open("lidar_poses.txt", std::ios::app);
       pose_file_ << std::to_string(cloud_msg_time);
       for (int i = 0; i < 3; ++i)
         for (int j = 0; j < 4; ++j)
           pose_file_ << " " << t_matrix(i, j);
       pose_file_ << "\n";
       pose_file_.close();
-    } 
+      std::cout << "Saved point cloud at " << cloud_msg_time << std::endl;
+    }
 
     bool read_lidar_poses(const std::string lidar_pose_name) {
       if (std::ifstream(lidar_pose_name)) {
@@ -120,8 +126,8 @@ class NCLTData {
         origin.y() = transform(1, 3);
         origin.z() = transform(2, 3);
         map_->insert_pointcloud(cloud, origin, resolution_, free_resolution_, max_range_);
-        std::cout << "Inserted " << scan_name << std::endl;
-        publish_map();
+        std::cout << "Inserted point cloud at " << scan_name << std::endl;
+        //publish_map();
         query_scans(it->first);
       }
       return 1;
@@ -162,8 +168,9 @@ class NCLTData {
       }
     }
 
-    void set_up_evaluation(const std::string evaluation_folder) {
-      evaluation_folder_ = evaluation_folder;
+    void set_up_evaluation(const std::string gt_data_folder, const std::string evaluation_result_folder) {
+      gt_data_folder_ = gt_data_folder;
+      evaluation_result_folder_ = evaluation_result_folder;
     }
 
     void query_scans(long long current_time) {
@@ -177,24 +184,32 @@ class NCLTData {
     }
 
     void query_scan(long long time) {
-      std::string gt_name = evaluation_folder_ + std::to_string(time) + ".pcd";
-      std::string result_name = evaluation_folder_ + std::to_string(time) + ".txt";
+      std::cout << "Query point cloud at " <<  std::to_string(time) << std::endl;
+      for (int c = 1; c <= 5; ++c) {
+        std::string gt_name = gt_data_folder_ + "Cam"+ std::to_string(c) + "_" + std::to_string(time) + ".pcd";
+        std::string result_name = evaluation_result_folder_ + "Cam" + std::to_string(c) + "_" +std::to_string(time) + ".txt";
 
-      pcl::PointCloud<pcl::PointXYZL> cloud;
-      pcl::io::loadPCDFile<pcl::PointXYZL> (gt_name, cloud);
-      Eigen::Matrix4d transform = time_pose_map_[time];
-      pcl::transformPointCloud (cloud, cloud, transform);
+        pcl::PointCloud<pcl::PointXYZRGBL> cloud;
+        if (pcl::io::loadPCDFile<pcl::PointXYZRGBL> (gt_name, cloud) == -1)
+         continue;
+        Eigen::Matrix4d transform = time_pose_map_[time];
+        pcl::transformPointCloud (cloud, cloud, transform);
 
-      std::ofstream result_file;
-      result_file.open(result_name);
-      for (int i = 0; i < cloud.points.size(); ++i) {
-        la3dm::SemanticOcTreeNode node = map_->search(cloud.points[i].x, cloud.points[i].y, cloud.points[i].z);
-        if (node.get_state() == la3dm::State::OCCUPIED){
-          int pred_label = node.get_semantics();
-          result_file << cloud.points[i].label << " " << pred_label - 1  << "\n";
+        std::ofstream result_file;
+        result_file.open(result_name);
+        for (int i = 0; i < cloud.points.size(); ++i) {
+          if (cloud.points[i].x * cloud.points[i].x + cloud.points[i].y * cloud.points[i].y + cloud.points[i].z * cloud.points[i].z > 100 * 100)
+            continue;
+          if (cloud.points[i].label == 0 || cloud.points[i].label == 8 || cloud.points[i].label == 13)
+            continue;
+          la3dm::SemanticOcTreeNode node = map_->search(cloud.points[i].x, cloud.points[i].y, cloud.points[i].z);
+          if (node.get_state() == la3dm::State::OCCUPIED){
+            int pred_label = node.get_semantics();
+            result_file << cloud.points[i].label << " " << pred_label << "\n";
+          }
         }
+        result_file.close();
       }
-      result_file.close();
     }
   
   private:
@@ -206,10 +221,10 @@ class NCLTData {
     la3dm::MarkerArrayPub* m_pub_;
     tf::TransformListener listener_;
     std::ofstream pose_file_;
-    std::string evaluation_folder_;
-
     std::map<long long, Eigen::Matrix4d> time_pose_map_;
     std::vector<long long> evaluation_list_;
+    std::string gt_data_folder_;
+    std::string evaluation_result_folder_;
 
     int check_element_in_vector(const long long element, const std::vector<long long>& vec_check) {
       for (int i = 0; i < vec_check.size(); ++i)

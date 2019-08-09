@@ -30,10 +30,11 @@ int main(int argc, char **argv) {
     std::string dir;
     std::string input_data_prefix;
     std::string lidar_pose_file;
-    std::string evaluation_data_prefix;
     std::string evaluation_list_file;
+    std::string gt_data_prefix;
+    std::string evaluation_result_prefix;
     double max_range = -1;
-    int num_class = 15;
+    int num_class = 14;
 
     nh.param<std::string>("topic", map_topic, map_topic);
     nh.param<double>("resolution", resolution, resolution);
@@ -55,8 +56,9 @@ int main(int argc, char **argv) {
     nh.param<std::string>("dir", dir, dir);
     nh.param<std::string>("input_data_prefix", input_data_prefix, input_data_prefix);
     nh.param<std::string>("lidar_pose_file", lidar_pose_file, lidar_pose_file);
-    nh.param<std::string>("evaluation_data_prefix", evaluation_data_prefix, evaluation_data_prefix);
     nh.param<std::string>("evaluation_list_file", evaluation_list_file, evaluation_list_file);
+    nh.param<std::string>("gt_data_prefix", gt_data_prefix, gt_data_prefix);
+    nh.param<std::string>("evaluation_result_prefix", evaluation_result_prefix, evaluation_result_prefix);
     nh.param<double>("max_range", max_range, max_range);
     nh.param<int>("num_class", num_class, num_class);
 
@@ -81,8 +83,9 @@ int main(int argc, char **argv) {
       "dir: " << dir << std::endl <<
       "input_data_prefix: " << input_data_prefix << std::endl <<
       "lidar_pose_file: " << lidar_pose_file << std::endl <<
-      "evaluation_data_prefix: " << evaluation_data_prefix << std::endl <<
       "evaluation_list_file: " << evaluation_list_file << std::endl <<
+      "gt_data_prefix:" << gt_data_prefix << std::endl <<
+      "evaluation_result_prefix: " << evaluation_result_prefix << std::endl <<
       "max_range: " << max_range << std::endl <<
       "num_class: " << num_class
       );
@@ -90,11 +93,11 @@ int main(int argc, char **argv) {
     
     ///////// Build Map /////////////////////
     NCLTData<14> nclt_data(nh, resolution, block_depth, sf2, ell, num_class, free_thresh, occupied_thresh, var_thresh, free_resolution, max_range, map_topic);
-    nclt_data.read_lidar_poses(dir + input_data_prefix + lidar_pose_file);
-    nclt_data.set_up_evaluation(dir + evaluation_data_prefix);
-    nclt_data.read_evaluation_list(dir + evaluation_data_prefix + evaluation_list_file);
+    nclt_data.read_lidar_poses(dir + lidar_pose_file);
+    nclt_data.read_evaluation_list(dir + evaluation_list_file);
+    nclt_data.set_up_evaluation(dir + gt_data_prefix, dir + evaluation_result_prefix);
     nclt_data.process_scans(dir + input_data_prefix);
-    ros::Subscriber sub = nh.subscribe("/labeled_pointcloud", 100, &NCLTData<14>::PointCloudCallback, &nclt_data);
+    //ros::Subscriber sub = nh.subscribe("/labeled_pointcloud", 100, &NCLTData<14>::PointCloudCallback, &nclt_data);
 
     ros::spin();
     return 0;
