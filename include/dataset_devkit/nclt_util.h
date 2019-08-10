@@ -47,9 +47,7 @@ class NCLTData {
         pt.z = cloud_msg->points[i].z;
         pt.label = cloud_msg->channels[0].values[i];
         
-        if (pt.x * pt.x + pt.y * pt.y + pt.z * pt.z > 100 * 100)
-          continue;
-        if (pt.label == 0 || pt.label == 8 || pt.label == 13)  // Note: don't project background, person and sky
+        if (pt.label == 0 || pt.label == 13)  // Note: don't project background and sky
           continue;
         cloud.push_back(pt);
       }
@@ -198,10 +196,6 @@ class NCLTData {
         std::ofstream result_file;
         result_file.open(result_name);
         for (int i = 0; i < cloud.points.size(); ++i) {
-          if (cloud.points[i].x * cloud.points[i].x + cloud.points[i].y * cloud.points[i].y + cloud.points[i].z * cloud.points[i].z > 100 * 100)
-            continue;
-          if (cloud.points[i].label == 0 || cloud.points[i].label == 8 || cloud.points[i].label == 13)
-            continue;
           la3dm::SemanticOcTreeNode node = map_->search(cloud.points[i].x, cloud.points[i].y, cloud.points[i].z);
           if (node.get_state() == la3dm::State::OCCUPIED){
             int pred_label = node.get_semantics();

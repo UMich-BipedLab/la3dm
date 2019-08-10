@@ -84,7 +84,7 @@ int main(int argc, char **argv) {
       "input_data_prefix: " << input_data_prefix << std::endl <<
       "lidar_pose_file: " << lidar_pose_file << std::endl <<
       "evaluation_list_file: " << evaluation_list_file << std::endl <<
-      "gt_data_prefix:" << gt_data_prefix << std::endl <<
+      "gt_data_prefix: " << gt_data_prefix << std::endl <<
       "evaluation_result_prefix: " << evaluation_result_prefix << std::endl <<
       "max_range: " << max_range << std::endl <<
       "num_class: " << num_class

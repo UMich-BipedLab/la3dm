@@ -62,9 +62,10 @@ namespace la3dm {
 
       // update state
       std::vector<float> vars = get_vars();
-      if (vars[semantics] > Occupancy::var_thresh)
-         state = State::UNKNOWN;
-      else if (semantics == 0)
+      //if (vars[semantics] > Occupancy::var_thresh)
+         //state = State::UNKNOWN;
+      //else if (semantics == 0)
+      if (semantics == 0)
         state = State::FREE;
       else {
           float p = 1 - probs[0];
