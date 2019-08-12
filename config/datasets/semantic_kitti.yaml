@@ -1,0 +1,22 @@
+# sim_unstructured config
+dir: /media/ganlu/PeRL SSD/kitti/dataset/sequences/05/
+input_data_prefix: velodyne/
+input_label_prefix: predictions/
+lidar_pose_file: poses.txt
+evaluation_list_file: evaluation_list.txt
+gt_data_prefix: labels/
+evaluation_result_prefix: evaluation/
+
+scan_num: 2761
+
+# Information about range-finder data
+max_range: 20 # Sensor max range (m)
+
+# Bounds on map height
+min_z: 0
+max_z: 4.3
+
+original_size: true
+predict: false
+
+num_class: 20 # Number of classes
