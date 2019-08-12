@@ -74,7 +74,9 @@ class SemanticKITTIData {
         origin.z() = transform(2, 3);
         map_->insert_pointcloud(*cloud, origin, resolution_, free_resolution_, max_range_);
         std::cout << "Inserted point cloud at " << scan_name << std::endl;
-        publish_map();
+        //publish_map();
+        for (int query_id = scan_id - 5; query_id >= 0 && query_id <= scan_id; ++query_id)
+          query_scan(input_data_dir, query_id);
       }
       return 1;
     }
@@ -89,6 +91,39 @@ class SemanticKITTIData {
       m_pub_->publish();
     }
 
+    void set_up_evaluation(const std::string gt_label_dir, const std::string evaluation_result_dir) {
+      gt_label_dir_ = gt_label_dir;
+      evaluation_result_dir_ = evaluation_result_dir;
+    }
+
+    void query_scan(std::string input_data_dir, int scan_id) {
+      char scan_id_c[256];
+      sprintf(scan_id_c, "%06d", scan_id);
+      std::string scan_name = input_data_dir + std::string(scan_id_c) + ".bin";
+      std::string gt_name = gt_label_dir_ + std::string(scan_id_c) + ".label";
+      std::string result_name = evaluation_result_dir_ + std::string(scan_id_c) + ".txt";
+      pcl::PointCloud<pcl::PointXYZL>::Ptr cloud = kitti2pcl(scan_name, gt_name);
+      Eigen::Matrix4d transform = lidar_poses_[scan_id];
+      Eigen::Matrix4d calibration;
+      calibration <<  -0.001857739385241, -0.999965951350955, -0.008039975204516, -0.004784029760483,
+                      -0.006481465826011,  0.008051860151134, -0.999946608177406, -0.073374294642306,
+                       0.999977309828677, -0.001805528627661, -0.006496203536139, -0.333996806443304,
+                       0                ,  0                ,  0                ,  1.000000000000000;
+      Eigen::Matrix4d new_transform = transform * calibration;
+      pcl::transformPointCloud (*cloud, *cloud, new_transform);
+
+      std::ofstream result_file;
+      result_file.open(result_name);
+      for (int i = 0; i < cloud->points.size(); ++i) {
+        la3dm::SemanticOcTreeNode node = map_->search(cloud->points[i].x, cloud->points[i].y, cloud->points[i].z);
+        if (node.get_state() == la3dm::State::OCCUPIED) {
+         int pred_label = node.get_semantics();
+         result_file << cloud->points[i].label << " " << pred_label << "\n"; 
+        }
+      }
+      result_file.close();
+    }
+
   
   private:
     ros::NodeHandle nh_;
@@ -100,9 +135,8 @@ class SemanticKITTIData {
     tf::TransformListener listener_;
     std::ofstream pose_file_;
     std::vector<Eigen::Matrix4d> lidar_poses_;
-    std::vector<long long> evaluation_list_;
-    std::string gt_data_folder_;
-    std::string evaluation_result_folder_;
+    std::string gt_label_dir_;
+    std::string evaluation_result_dir_;
 
     int check_element_in_vector(const long long element, const std::vector<long long>& vec_check) {
       for (int i = 0; i < vec_check.size(); ++i)

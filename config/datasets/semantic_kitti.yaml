@@ -3,9 +3,8 @@ dir: /media/ganlu/PeRL SSD/kitti/dataset/sequences/05/
 input_data_prefix: velodyne/
 input_label_prefix: predictions/
 lidar_pose_file: poses.txt
-evaluation_list_file: evaluation_list.txt
-gt_data_prefix: labels/
-evaluation_result_prefix: evaluation/
+gt_label_prefix: labels/
+evaluation_result_prefix: evaluations/
 
 scan_num: 2761
 
