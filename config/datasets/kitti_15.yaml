@@ -9,7 +9,7 @@ reproj_img_prefix: reproj_img
 reproject: true
 
 # Information about range-finder data
-scan_num: 99 # How many scans to use
+scan_num: 100 # How many scans to use
 max_range: -1 # Sensor max range (m)
 
 # Bounds on map height

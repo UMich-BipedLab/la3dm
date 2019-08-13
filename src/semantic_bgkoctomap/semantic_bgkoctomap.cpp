@@ -130,14 +130,14 @@ namespace la3dm {
 #endif
         for (int i = 0; i < blocks.size(); ++i) {
             BlockHashKey key = blocks[i];
-            //ExtendedBlock eblock = get_extended_block(key);
-            //if (has_gp_points_in_bbox(eblock))
+            ExtendedBlock eblock = get_extended_block(key);
+            if (has_gp_points_in_bbox(eblock))
 #ifdef OPENMP
 #pragma omp critical
 #endif
-            //{
+            {
                 test_blocks.push_back(key);
-            //};
+            };
 
             GPPointCloud block_xy;
             get_gp_points_in_bbox(key, block_xy);
@@ -194,7 +194,7 @@ namespace la3dm {
             }
             //std::cout << "xs size: "<<xs.size() << std::endl;
 
-            /*ExtendedBlock eblock = block->get_extended_block();
+            ExtendedBlock eblock = block->get_extended_block();
             for (auto block_it = eblock.cbegin(); block_it != eblock.cend(); ++block_it) {
                 auto bgk = bgk_arr.find(*block_it);
                 if (bgk == bgk_arr.end())
@@ -210,10 +210,10 @@ namespace la3dm {
                     //if (kbar[j] > 0.0)
                     node.update(ybars[j]);
                 }
-            }*/
+            }
 
 	          // For counting sensor model
-            auto bgk = bgk_arr.find(key);
+            /*auto bgk = bgk_arr.find(key);
             if (bgk == bgk_arr.end())
               continue;
 
@@ -226,7 +226,7 @@ namespace la3dm {
 
                 // Only need to update if kernel density total kernel density est > 0
                 node.update(ybars[j]);
-            }
+            }*/
 
         }
 #ifdef DEBUG

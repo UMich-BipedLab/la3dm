@@ -13,12 +13,12 @@ endif()
 find_package(OpenCV REQUIRED)
 
 ## Enable OpenMP
-#add_definitions(-DOPENMP)
+add_definitions(-DOPENMP)
 
 ## Enable Debug Info
 #add_definitions(-DDEBUG)
 
-# add_definitions(-DPREDICT)
+add_definitions(-DPREDICT)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
