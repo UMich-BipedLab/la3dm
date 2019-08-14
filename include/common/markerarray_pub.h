@@ -425,7 +425,7 @@ namespace la3dm {
                 depth = (int) log2(size / 0.1);
 
             msg->markers[depth].points.push_back(center);
-            msg->markers[depth].colors.push_back(SemanticKITTISemanticMapColor(c));
+            msg->markers[depth].colors.push_back(NCLTSemanticMapColor(c));
         }
 
         void insert_point3d_variance(float x, float y, float z, float min_v, float max_v, float size, float var) {

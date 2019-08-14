@@ -75,7 +75,7 @@ class SemanticKITTIData {
         map_->insert_pointcloud(*cloud, origin, resolution_, free_resolution_, max_range_);
         std::cout << "Inserted point cloud at " << scan_name << std::endl;
         //publish_map();
-        for (int query_id = scan_id - 5; query_id >= 0 && query_id <= scan_id; ++query_id)
+        for (int query_id = scan_id - 10; query_id >= 0 && query_id <= scan_id; ++query_id)
           query_scan(input_data_dir, query_id);
       }
       return 1;
@@ -116,10 +116,10 @@ class SemanticKITTIData {
       result_file.open(result_name);
       for (int i = 0; i < cloud->points.size(); ++i) {
         la3dm::SemanticOcTreeNode node = map_->search(cloud->points[i].x, cloud->points[i].y, cloud->points[i].z);
-        if (node.get_state() == la3dm::State::OCCUPIED) {
-         int pred_label = node.get_semantics();
-         result_file << cloud->points[i].label << " " << pred_label << "\n"; 
-        }
+        int pred_label = 0;
+	if (node.get_state() == la3dm::State::OCCUPIED)
+	  pred_label = node.get_semantics();
+        result_file << cloud->points[i].label << " " << pred_label << "\n";
       }
       result_file.close();
     }
@@ -172,6 +172,7 @@ class SemanticKITTIData {
         pc->push_back(point);
       }
       std::fclose(fp);
+      std::fclose(fp_label);
       return pc;
     }
 };
