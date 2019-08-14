@@ -197,10 +197,10 @@ class NCLTData {
         result_file.open(result_name);
         for (int i = 0; i < cloud.points.size(); ++i) {
           la3dm::SemanticOcTreeNode node = map_->search(cloud.points[i].x, cloud.points[i].y, cloud.points[i].z);
-          if (node.get_state() == la3dm::State::OCCUPIED){
-            int pred_label = node.get_semantics();
-            result_file << cloud.points[i].label << " " << pred_label << "\n";
-          }
+          int pred_label = 0;
+          if (node.get_state() == la3dm::State::OCCUPIED)
+            pred_label = node.get_semantics();
+          result_file << cloud.points[i].label << " " << pred_label << "\n";
         }
         result_file.close();
       }
