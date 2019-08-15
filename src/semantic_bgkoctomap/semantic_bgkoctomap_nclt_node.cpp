@@ -92,7 +92,7 @@ int main(int argc, char **argv) {
 
     
     ///////// Build Map /////////////////////
-    NCLTData<14> nclt_data(nh, resolution, block_depth, sf2, ell, num_class, free_thresh, occupied_thresh, var_thresh, free_resolution, max_range, map_topic);
+    NCLTData<14> nclt_data(nh, resolution, block_depth, sf2, ell, num_class, free_thresh, occupied_thresh, var_thresh, ds_resolution, free_resolution, max_range, map_topic);
     nclt_data.read_lidar_poses(dir + lidar_pose_file);
     nclt_data.read_evaluation_list(dir + evaluation_list_file);
     nclt_data.set_up_evaluation(dir + gt_data_prefix, dir + evaluation_result_prefix);

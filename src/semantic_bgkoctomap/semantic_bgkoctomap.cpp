@@ -278,9 +278,9 @@ namespace la3dm {
     void SemanticBGKOctoMap::get_training_data(const PCLPointCloud &cloud, const point3f &origin, float ds_resolution,
                                       float free_resolution, float max_range, GPPointCloud &xy) const {
         PCLPointCloud sampled_hits;
-        std::cout << "size before dsp: " << cloud.points.size() << std::endl;
+        //std::cout << "size before dsp: " << cloud.points.size() << std::endl;
         downsample(cloud, sampled_hits, ds_resolution);
-        std::cout << "size after dsp: " <<sampled_hits.points.size() << std::endl;
+        //std::cout << "size after dsp: " <<sampled_hits.points.size() << std::endl;
         //sampled_hits = cloud;
 
         PCLPointCloud frees;
@@ -335,6 +335,7 @@ namespace la3dm {
             return;
         }
 
+        //std::cout << ds_resolution << std::endl;
         PCLPointCloud::Ptr pcl_in(new PCLPointCloud(in));
 
         pcl::VoxelGrid<PCLPointType> sor;
