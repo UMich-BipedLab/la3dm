@@ -18,10 +18,11 @@ class SemanticKITTIData {
              double sf2, double ell,
              int num_class, double free_thresh,
              double occupied_thresh, float var_thresh, 
+	     double ds_resolution,
              double free_resolution, double max_range,
              std::string map_topic)
       : nh_(nh)
-      , resolution_(resolution)
+      , ds_resolution_(ds_resolution)
       , free_resolution_(free_resolution)
       , max_range_(max_range) {
         map_ = new la3dm::SemanticBGKOctoMap(resolution, block_depth, sf2, ell, num_class, free_thresh, occupied_thresh, var_thresh, 0.001, 0.001);
@@ -72,7 +73,7 @@ class SemanticKITTIData {
         origin.x() = transform(0, 3);
         origin.y() = transform(1, 3);
         origin.z() = transform(2, 3);
-        map_->insert_pointcloud(*cloud, origin, resolution_, free_resolution_, max_range_);
+        map_->insert_pointcloud(*cloud, origin, ds_resolution_, free_resolution_, max_range_);
         std::cout << "Inserted point cloud at " << scan_name << std::endl;
         //publish_map();
         for (int query_id = scan_id - 10; query_id >= 0 && query_id <= scan_id; ++query_id)
@@ -127,7 +128,7 @@ class SemanticKITTIData {
   
   private:
     ros::NodeHandle nh_;
-    double resolution_;
+    double ds_resolution_;
     double free_resolution_;
     double max_range_;
     la3dm::SemanticBGKOctoMap* map_;

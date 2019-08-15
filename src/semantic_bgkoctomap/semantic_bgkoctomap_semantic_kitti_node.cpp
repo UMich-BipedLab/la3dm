@@ -95,7 +95,7 @@ int main(int argc, char **argv) {
 
     
     ///////// Build Map /////////////////////
-    SemanticKITTIData semantic_kitti_data(nh, resolution, block_depth, sf2, ell, num_class, free_thresh, occupied_thresh, var_thresh, free_resolution, max_range, map_topic);
+    SemanticKITTIData semantic_kitti_data(nh, resolution, block_depth, sf2, ell, num_class, free_thresh, occupied_thresh, var_thresh, ds_resolution, free_resolution, max_range, map_topic);
     semantic_kitti_data.read_lidar_poses(dir + lidar_pose_file);
     semantic_kitti_data.set_up_evaluation(dir + gt_label_prefix, dir + evaluation_result_prefix);
     semantic_kitti_data.process_scans(dir + input_data_prefix, dir + input_label_prefix, scan_num);
