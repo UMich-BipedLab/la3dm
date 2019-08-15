@@ -278,8 +278,10 @@ namespace la3dm {
     void SemanticBGKOctoMap::get_training_data(const PCLPointCloud &cloud, const point3f &origin, float ds_resolution,
                                       float free_resolution, float max_range, GPPointCloud &xy) const {
         PCLPointCloud sampled_hits;
-        //downsample(cloud, sampled_hits, ds_resolution);
-        sampled_hits = cloud;
+        std::cout << "size before dsp: " << cloud.points.size() << std::endl;
+        downsample(cloud, sampled_hits, ds_resolution);
+        std::cout << "size after dsp: " <<sampled_hits.points.size() << std::endl;
+        //sampled_hits = cloud;
 
         PCLPointCloud frees;
         frees.height = 1;
@@ -287,7 +289,6 @@ namespace la3dm {
         xy.clear();
         for (auto it = sampled_hits.begin(); it != sampled_hits.end(); ++it) {
             point3f p(it->x, it->y, it->z);
-            //std::cout << "it->label: " << it->label << std::endl;
             if (max_range > 0) {
                 double l = (p - origin).norm();
                 if (l > max_range)
@@ -295,10 +296,6 @@ namespace la3dm {
             }
             
             xy.emplace_back(p, it->label);
-            //if (it->z < 0.18)
-              //xy.emplace_back(p, 2.0f);
-            //else
-              //xy.emplace_back(p, 1.0f);
 
             PointCloud frees_n;
             beam_sample(p, origin, frees_n, free_resolution);
@@ -324,15 +321,15 @@ namespace la3dm {
         }
 
         PCLPointCloud sampled_frees;    
-        //downsample(frees, sampled_frees, ds_resolution);
-        sampled_frees = frees;  
+        downsample(frees, sampled_frees, ds_resolution);
+        //sampled_frees = frees;  
 
         for (auto it = sampled_frees.begin(); it != sampled_frees.end(); ++it) {
             xy.emplace_back(point3f(it->x, it->y, it->z), 0.0f);
         }
     }
 
-    /*void SemanticBGKOctoMap::downsample(const PCLPointCloud &in, PCLPointCloud &out, float ds_resolution) const {
+    void SemanticBGKOctoMap::downsample(const PCLPointCloud &in, PCLPointCloud &out, float ds_resolution) const {
         if (ds_resolution < 0) {
             out = in;
             return;
@@ -344,7 +341,7 @@ namespace la3dm {
         sor.setInputCloud(pcl_in);
         sor.setLeafSize(ds_resolution, ds_resolution, ds_resolution);
         sor.filter(out);
-    }*/
+    }
 
     void SemanticBGKOctoMap::beam_sample(const point3f &hit, const point3f &origin, PointCloud &frees,
                                 float free_resolution) const {

@@ -372,7 +372,7 @@ namespace la3dm {
         static bool search_callback(GPPointType *p, void *arg);
 
         /// Downsample PCLPointCloud using PCL VoxelGrid Filtering.
-        //void downsample(const PCLPointCloud &in, PCLPointCloud &out, float ds_resolution) const;
+        void downsample(const PCLPointCloud &in, PCLPointCloud &out, float ds_resolution) const;
 
         /// Sample free training points along sensor beams.
         void beam_sample(const point3f &hits, const point3f &origin, PointCloud &frees,
