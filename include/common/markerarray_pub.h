@@ -155,72 +155,67 @@ namespace la3dm {
       color.a = 1.0;
 
       switch (c) {
-        case 1:  // background
-          color.r = 0;
-          color.g = 0;
-          color.b = 0;
-          break;
-        case 2:  // water
+        case 1:  // water
           color.r = 30.0 / 255;
           color.g = 144.0 / 255;
           color.b = 250.0 / 255;
           break;
-        case 3:  // road
+        case 2:  // road
           color.r = 250.0 / 255;
           color.g = 250.0 / 255;
           color.b = 250.0 / 255;
           break;
-        case 4:  // sidewalk
-          color.r = 250.0 / 255;
-          color.g = 250.0 / 255;
-          color.b = 250.0 / 255;
+        case 3:  // sidewalk
+          color.r = 128.0 / 255;
+          color.g = 64.0 / 255;
+          color.b = 128.0 / 255;
           break;
-        case 5:  // terrain
+        case 4:  // terrain
           color.r = 128.0 / 255;
           color.g = 128.0 / 255;
           color.b = 0;
           break;
-        case 6:  // building
+        case 5:  // building
           color.r = 250.0 / 255;
           color.g = 128.0 / 255;
           color.b = 0;
           break;
-        case 7:  // vegetation
+        case 6:  // vegetation
           color.r = 107.0 / 255;
           color.g = 142.0/ 255;
           color.b = 35.0 / 255;
           break;
-        case 8:  // car
+        case 7:  // car
           color.r = 0;
           color.g = 0;
           color.b = 142.0 / 255;
           break;
-        case 9:  // person
+        case 8:  // person
           color.r = 220.0 / 255;
           color.g = 20.0 / 255;
           color.b = 60.0 / 255;
           break;
-        case 10:  // bike
+        case 9:  // bike
           color.r = 119.0 / 255;
           color.g = 11.0 / 255;
           color.b = 32.0/ 255;
           break;
-        case 11:  // pole
+        case 10:  // pole
           color.r = 192.0 / 255;
           color.g = 192.0 / 255;
           color.b = 192.0 / 255;
           break;
-        case 12:  // stair
+        case 11:  // stair
           color.r = 123.0 / 255;
           color.g = 104.0 / 255;
           color.b = 238.0 / 255;
           break;
-        case 13:  // traffic sign
+        case 12:  // traffic sign
           color.r = 250.0 / 255;
           color.g = 250.0 / 255;
           color.b = 0;
           break;
-        case 14:  // sky
+        case 13:  // sky
           color.r = 135.0 / 255;
           color.g = 206.0 / 255;
           color.b = 235.0 / 255;
