@@ -11,7 +11,7 @@ ell: 0.3 # Length scale of the sparse kernel
 
 # Sampling resolutions
 free_resolution: 100.0 # Free space sampling resolution (0.5)
-ds_resolution: 0.1 # Downsampling factor
+ds_resolution: -1 # Downsampling factor
 
 # Free/Occupied Thresholds
 free_thresh: 0.4588235294117647
