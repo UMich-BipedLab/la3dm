@@ -3,19 +3,20 @@
 # Map topic, grid cell mininum resolution
 topic: /occupied_cells_vis_array
 resolution: 0.1
-block_depth: 1 # Test-data octree depth (see Wang & Englot ICRA 2016)
+block_depth: 3 # Test-data octree depth (see Wang & Englot ICRA 2016)
 
 # Kernel parameters
 sf2: 10.0 # Actually sigma_0 in sparse kernel
-ell: 0.3 # Length scale of the sparse kernel
+ell: 0.6 # Length scale of the sparse kernel
 
 # Sampling resolutions
-free_resolution: 100.0 # Free space sampling resolution (0.5)
+free_resolution: 20.0 # Free space sampling resolution (0.5)
 ds_resolution: -1 # Downsampling factor
 
 # Free/Occupied Thresholds
-free_thresh: 0.4588235294117647
-occupied_thresh: 0.5294117647058824
+#free_thresh: 0.4588235294117647
+#occupied_thresh: 0.5294117647058824
+occupied_thresh: 0.7
 var_thresh: 0.09 # Threshold on variance to distinguish known/unknown
 
 # BGK Inference positive and negative class prior pseudocounts

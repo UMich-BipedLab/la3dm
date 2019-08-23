@@ -144,11 +144,13 @@ class KITTIData {
     }
    
     void process_depth_img(const int scan_id, const cv::Mat& depth_img,
-                           pcl::PointCloud<pcl::PointXYZL>& cloud, la3dm::point3f& origin) {
+                           pcl::PointCloud<pcl::PointXYZL>& cloud, la3dm::point3f& origin, bool reproject) {
       // Save depth images for reprojection
-      int reproj_id = check_element_in_vector(scan_id, evaluation_list_);
-      if (reproj_id >= 0)
-        depth_imgs_[reproj_id] = depth_img.clone();
+      if (reproject) {
+        int reproj_id = check_element_in_vector(scan_id, evaluation_list_);
+        if (reproj_id >= 0)
+          depth_imgs_[reproj_id] = depth_img.clone();
+      }
 
       Eigen::Matrix4f transform = get_current_pose(scan_id);
       for (int32_t i = 0; i < im_width_ * im_height_; ++i) {

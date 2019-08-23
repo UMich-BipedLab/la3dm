@@ -18,7 +18,7 @@ add_definitions(-DOPENMP)
 ## Enable Debug Info
 #add_definitions(-DDEBUG)
 
-add_definitions(-DPREDICT)
+#add_definitions(-DPREDICT)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -177,6 +177,12 @@ add_executable(semantic_bgkoctomap_semantic_kitti_node
     src/semantic_bgkoctomap/semantic_bgkoctomap_semantic_kitti_node.cpp
 )
 
+add_executable(semantic_bgkoctomap_cassie_node 
+  ${SEMANTIC_BGK_SOURCE_FILES}
+    ${COMMON_SOURCE_FILES}
+    src/semantic_bgkoctomap/semantic_bgkoctomap_cassie_node.cpp
+)
+
 add_executable(bgkoctomap_static_node 
     ${BGK_SOURCE_FILES}
     ${COMMON_SOURCE_FILES}
@@ -220,6 +226,10 @@ target_link_libraries(semantic_bgkoctomap_nclt_node
 )
 
 target_link_libraries(semantic_bgkoctomap_semantic_kitti_node
+        ${catkin_LIBRARIES}
+)
+
+target_link_libraries(semantic_bgkoctomap_cassie_node
         ${catkin_LIBRARIES}
 )
 

@@ -166,9 +166,12 @@ namespace la3dm {
           color.b = 250.0 / 255;
           break;
         case 3:  // sidewalk
-          color.r = 128.0 / 255;
-          color.g = 64.0 / 255;
-          color.b = 128.0 / 255;
+          //color.r = 128.0 / 255;
+          //color.g = 64.0 / 255;
+          //color.b = 128.0 / 255;
+          color.r = 250.0/255;
+          color.g = 250.0/255;
+          color.b = 250.0/255;
           break;
         case 4:  // terrain
           color.r = 128.0 / 255;
@@ -191,9 +194,12 @@ namespace la3dm {
           color.b = 142.0 / 255;
           break;
         case 8:  // person
-          color.r = 220.0 / 255;
-          color.g = 20.0 / 255;
-          color.b = 60.0 / 255;
+          //color.r = 220.0 / 255;
+          //color.g = 20.0 / 255;
+          //color.b = 60.0 / 255;
+          color.r = 250.0 / 255;
+          color.g = 250.0 / 255;
+          color.b = 250.0 / 255;
           break;
         case 9:  // bike
           color.r = 119.0 / 255;
@@ -374,8 +380,8 @@ namespace la3dm {
                                                                                   markerarray_frame_id("/map") {
             pub = nh.advertise<visualization_msgs::MarkerArray>(topic, 1, true);
 
-            msg->markers.resize(10);
-            for (int i = 0; i < 10; ++i) {
+            msg->markers.resize(2);
+            for (int i = 0; i < 2; ++i) {
                 msg->markers[i].header.frame_id = markerarray_frame_id;
                 msg->markers[i].ns = "map";
                 msg->markers[i].id = i;
@@ -420,7 +426,7 @@ namespace la3dm {
                 depth = (int) log2(size / 0.1);
 
             msg->markers[depth].points.push_back(center);
-            msg->markers[depth].colors.push_back(NCLTSemanticMapColor(c));
+            msg->markers[depth].colors.push_back(KITTISemanticMapColor(c));
         }
 
         void insert_point3d_variance(float x, float y, float z, float min_v, float max_v, float size, float var) {
