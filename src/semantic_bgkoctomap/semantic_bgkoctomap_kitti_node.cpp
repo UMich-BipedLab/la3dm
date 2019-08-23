@@ -4,8 +4,14 @@
 #include "semantic_bgkoctomap.h"
 #include "markerarray_pub.h"
 
+#include <octomap/ColorOcTree.h>
+#include <octomap_msgs/conversions.h>
+
 #include "kitti_util.h"
 
+
+void publish_map() {
+}
 
 int main(int argc, char **argv) {
     ros::init(argc, argv, "semantic_bgkoctomap_kitti_node");
@@ -137,6 +143,8 @@ int main(int argc, char **argv) {
     ///////// Build Map /////////////////////
     la3dm::SemanticBGKOctoMap map(resolution, block_depth, sf2, ell, num_class, free_thresh, occupied_thresh, var_thresh, prior_A, prior_B);
     la3dm::MarkerArrayPub m_pub(nh, map_topic, 0.1f);
+    ros::Publisher color_octomap_publisher = nh.advertise<octomap_msgs::Octomap>("color_octomap_out", 10);
+
     ros::Time start = ros::Time::now();
     for (int scan_id = 0; scan_id <= scan_num; ++scan_id) {
       la3dm::PCLPointCloud cloud;
@@ -150,13 +158,32 @@ int main(int argc, char **argv) {
 
     	cv::Mat depth_img = cv::imread(depth_img_name, CV_LOAD_IMAGE_ANYDEPTH);
     	kitti_data.read_label_prob_bin(label_bin_name);
-      kitti_data.process_depth_img(scan_id, depth_img, cloud, origin);
+      kitti_data.process_depth_img(scan_id, depth_img, cloud, origin, reproject);
       
       map.insert_pointcloud(cloud, origin, resolution, free_resolution, max_range);
       ROS_INFO_STREAM("Scan " << scan_id << " done");
      
       if (reproject)
         kitti_data.reproject_imgs(scan_id, map); 
+      
+      octomap::ColorOcTree* cmap = new octomap::ColorOcTree(resolution + 0.05);
+      for (auto it = map.begin_leaf(); it != map.end_leaf(); ++it) {
+        if (it.get_node().get_state() == la3dm::State::OCCUPIED) {
+          la3dm::point3f p = it.get_loc();
+          octomap::point3d endpoint(p.x(), p.y(), p.z());
+          octomap::ColorOcTreeNode* node = cmap->updateNode(endpoint, true);
+          std_msgs::ColorRGBA color = la3dm::KITTISemanticMapColor(it.get_node().get_semantics());
+          node->setColor(color.r*255, color.g*255, color.b*255);
+          m_pub.insert_point3d_semantics(p.x(), p.y(), p.z(), it.get_size(), it.get_node().get_semantics());
+        }
+      }
+      octomap_msgs::Octomap cmap_msg;
+      cmap_msg.binary = 0;
+      cmap_msg.resolution = resolution + 0.05;
+      octomap_msgs::fullMapToMsg(*cmap, cmap_msg);
+      cmap_msg.header.frame_id = "/map";
+      color_octomap_publisher.publish(cmap_msg);
+      //m_pub.publish();
     }
     ros::Time end = ros::Time::now();
     ROS_INFO_STREAM("Mapping finished in " << (end - start).toSec() << "s");

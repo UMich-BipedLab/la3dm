@@ -6,7 +6,7 @@ label_bin_prefix: label_binary
 camera_pose_file: CameraTrajectory.txt
 evaluation_list_file: evaluatioList.txt
 reproj_img_prefix: reproj_img
-reproject: true
+reproject: false
 
 # Information about range-finder data
 scan_num: 100 # How many scans to use

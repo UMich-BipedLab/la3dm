@@ -11,6 +11,11 @@
 #include <pcl/common/transforms.h>
 #include <pcl/io/pcd_io.h>
 
+#include <octomap/ColorOcTree.h>
+#include <octomap_msgs/conversions.h>
+//#include <octomap_ros/conversions.h>
+
+
 #define START_TIME 1335704231918265
 #define END_TIME 1335704347924201
 
@@ -26,11 +31,16 @@ class NCLTData {
              double free_resolution, double max_range,
              std::string map_topic)
       : nh_(nh)
+      , resolution_(resolution)
       , ds_resolution_(ds_resolution)
       , free_resolution_(free_resolution)
       , max_range_(max_range) {
         map_ = new la3dm::SemanticBGKOctoMap(resolution, block_depth, sf2, ell, num_class, free_thresh, occupied_thresh, var_thresh, 0.001, 0.001);
-        m_pub_ = new la3dm::MarkerArrayPub(nh_, map_topic, 0.1f);
+        color_octomap_publisher_ = nh_.advertise<octomap_msgs::Octomap>("color_octomap_out", 10);
+        init_trans_to_ground_ << 1.0000000,  0.0000000,  0.0000000, 0,
+   0.0000000, -1.0000000, -0.0000000, 0,
+   0.0000000,  0.0000000, -1.0000000, 0,
+                                  0, 0, 0, 1;
       }
 
     // Data preprocess
@@ -120,26 +130,36 @@ class NCLTData {
           ROS_ERROR_STREAM ("Couldn't read file " << scan_name);
           return 0;
         }
+        transform = init_trans_to_ground_ * transform;
         pcl::transformPointCloud (cloud, cloud, transform);
         origin.x() = transform(0, 3);
         origin.y() = transform(1, 3);
         origin.z() = transform(2, 3);
         map_->insert_pointcloud(cloud, origin, ds_resolution_, free_resolution_, max_range_);
         std::cout << "Inserted point cloud at " << scan_name << std::endl;
-        //publish_map();
+        publish_map();
         query_scans(it->first);
       }
       return 1;
     }
 
     void publish_map() {
+      octomap::ColorOcTree* cmap = new octomap::ColorOcTree(resolution_ + 0.01);
       for (auto it = map_->begin_leaf(); it != map_->end_leaf(); ++it) {
         if (it.get_node().get_state() == la3dm::State::OCCUPIED) {
           la3dm::point3f p = it.get_loc();
-          m_pub_->insert_point3d_semantics(p.x(), p.y(), p.z(), it.get_size(), it.get_node().get_semantics());
+          octomap::point3d endpoint(p.x(), p.y(), p.z());
+          octomap::ColorOcTreeNode* node = cmap->updateNode(endpoint, true);
+          std_msgs::ColorRGBA color = la3dm::NCLTSemanticMapColor(it.get_node().get_semantics());
+          node->setColor(color.r*255, color.g*255, color.b*255);
         }
       }
-      m_pub_->publish();
+      octomap_msgs::Octomap cmap_msg;
+      cmap_msg.binary = 0;
+      cmap_msg.resolution = resolution_ + 0.01;
+      octomap_msgs::fullMapToMsg(*cmap, cmap_msg);
+      cmap_msg.header.frame_id = "/map";
+      color_octomap_publisher_.publish(cmap_msg);
     }
 
     bool read_evaluation_list(const std::string evaluation_list_name) {
@@ -209,17 +229,19 @@ class NCLTData {
   
   private:
     ros::NodeHandle nh_;
+    double resolution_;
     double ds_resolution_;
     double free_resolution_;
     double max_range_;
     la3dm::SemanticBGKOctoMap* map_;
-    la3dm::MarkerArrayPub* m_pub_;
+    ros::Publisher color_octomap_publisher_;
     tf::TransformListener listener_;
     std::ofstream pose_file_;
     std::map<long long, Eigen::Matrix4d> time_pose_map_;
     std::vector<long long> evaluation_list_;
     std::string gt_data_folder_;
     std::string evaluation_result_folder_;
+    Eigen::Matrix4d init_trans_to_ground_;
 
     int check_element_in_vector(const long long element, const std::vector<long long>& vec_check) {
       for (int i = 0; i < vec_check.size(); ++i)

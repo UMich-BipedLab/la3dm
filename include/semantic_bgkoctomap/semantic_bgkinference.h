@@ -53,8 +53,8 @@ namespace la3dm {
 	    assert(trained == true);
 	    MatrixKType Ks;
 
-	    covCountingSensorModel(_xs, x, Ks);
-	    //covSparse(_xs, x, Ks);
+	    //covCountingSensorModel(_xs, x, Ks);
+	    covSparse(_xs, x, Ks);
 	    
 	    ybars.resize(_xs.rows());
 	    for (int r = 0; r < _xs.rows(); ++r)
