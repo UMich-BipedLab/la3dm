@@ -166,13 +166,15 @@ int main(int argc, char **argv) {
       if (reproject)
         kitti_data.reproject_imgs(scan_id, map); 
       
-      octomap::ColorOcTree* cmap = new octomap::ColorOcTree(resolution + 0.05);
+
+      if (scan_id > 99) {
+      octomap::ColorOcTree cmap(resolution + 0.05);
       for (auto it = map.begin_leaf(); it != map.end_leaf(); ++it) {
         if (it.get_node().get_state() == la3dm::State::OCCUPIED) {
           la3dm::point3f p = it.get_loc();
           octomap::point3d endpoint(p.x(), p.y(), p.z());
-          octomap::ColorOcTreeNode* node = cmap->updateNode(endpoint, true);
-          std_msgs::ColorRGBA color = la3dm::KITTISemanticMapColor(it.get_node().get_semantics());
+	  octomap::ColorOcTreeNode* node = cmap.updateNode(endpoint, true);
+	  std_msgs::ColorRGBA color = la3dm::KITTISemanticMapColor(it.get_node().get_semantics());
           node->setColor(color.r*255, color.g*255, color.b*255);
           m_pub.insert_point3d_semantics(p.x(), p.y(), p.z(), it.get_size(), it.get_node().get_semantics());
         }
@@ -180,10 +182,11 @@ int main(int argc, char **argv) {
       octomap_msgs::Octomap cmap_msg;
       cmap_msg.binary = 0;
       cmap_msg.resolution = resolution + 0.05;
-      octomap_msgs::fullMapToMsg(*cmap, cmap_msg);
+      octomap_msgs::fullMapToMsg(cmap, cmap_msg);
       cmap_msg.header.frame_id = "/map";
       color_octomap_publisher.publish(cmap_msg);
-      //m_pub.publish();
+      m_pub.publish();
+      }
     }
     ros::Time end = ros::Time::now();
     ROS_INFO_STREAM("Mapping finished in " << (end - start).toSec() << "s");
