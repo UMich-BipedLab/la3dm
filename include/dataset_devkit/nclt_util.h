@@ -137,8 +137,9 @@ class NCLTData {
         origin.z() = transform(2, 3);
         map_->insert_pointcloud(cloud, origin, ds_resolution_, free_resolution_, max_range_);
         std::cout << "Inserted point cloud at " << scan_name << std::endl;
-        publish_map();
-        query_scans(it->first);
+        if (it->first > 1335704347724190)
+          publish_map();
+        //query_scans(it->first);
       }
       return 1;
     }

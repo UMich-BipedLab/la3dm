@@ -166,12 +166,12 @@ namespace la3dm {
           color.b = 250.0 / 255;
           break;
         case 3:  // sidewalk
-          //color.r = 128.0 / 255;
-          //color.g = 64.0 / 255;
-          //color.b = 128.0 / 255;
-          color.r = 250.0/255;
-          color.g = 250.0/255;
-          color.b = 250.0/255;
+          color.r = 128.0 / 255;
+          color.g = 64.0 / 255;
+          color.b = 128.0 / 255;
+          //color.r = 250.0/255;
+          //color.g = 250.0/255;
+          //color.b = 250.0/255;
           break;
         case 4:  // terrain
           color.r = 128.0 / 255;
@@ -194,12 +194,12 @@ namespace la3dm {
           color.b = 142.0 / 255;
           break;
         case 8:  // person
-          //color.r = 220.0 / 255;
-          //color.g = 20.0 / 255;
-          //color.b = 60.0 / 255;
-          color.r = 250.0 / 255;
-          color.g = 250.0 / 255;
-          color.b = 250.0 / 255;
+          color.r = 220.0 / 255;
+          color.g = 20.0 / 255;
+          color.b = 60.0 / 255;
+          //color.r = 250.0 / 255;
+          //color.g = 250.0 / 255;
+          //color.b = 250.0 / 255;
           break;
         case 9:  // bike
           color.r = 119.0 / 255;
