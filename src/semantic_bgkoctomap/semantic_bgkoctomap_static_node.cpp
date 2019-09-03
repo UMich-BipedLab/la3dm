@@ -168,9 +168,9 @@ int main(int argc, char **argv) {
                 la3dm::point3f p = it.get_loc();
                 int semantics = it.get_node().get_semantics();
 		std::vector<float> vars = it.get_node().get_vars();
-                //m_pub.insert_point3d(p.x(), p.y(), p.z(), min_z, max_z, it.get_size(), semantics);
+                m_pub.insert_point3d(p.x(), p.y(), p.z(), min_z, max_z, it.get_size(), semantics);
 		//std::cout << vars[semantics] << std::endl;
-		m_pub.insert_point3d_var(p.x(), p.y(), p.z(), min_var, std::min(var_thresh, max_var), it.get_size(), vars[semantics]);
+		//m_pub.insert_point3d_var(p.x(), p.y(), p.z(), min_var, std::min(var_thresh, max_var), it.get_size(), vars[semantics]);
             } /*else {
                 auto pruned = it.get_pruned_locs();
                 for (auto n = pruned.cbegin(); n < pruned.cend(); ++n)
