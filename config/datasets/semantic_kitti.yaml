@@ -9,7 +9,7 @@ evaluation_result_prefix: evaluations/
 scan_num: 2761
 
 # Information about range-finder data
-max_range: 20 # Sensor max range (m)
+max_range: -1 # Sensor max range (m)
 
 # Bounds on map height
 min_z: 0

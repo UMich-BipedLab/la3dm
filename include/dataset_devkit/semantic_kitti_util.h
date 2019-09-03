@@ -8,6 +8,9 @@
 #include <tf/transform_listener.h>
 #include <tf_conversions/tf_eigen.h>
 
+#include <octomap/ColorOcTree.h>
+#include <octomap_msgs/conversions.h>
+
 #include <pcl/common/transforms.h>
 #include <pcl/io/pcd_io.h>
 
@@ -22,11 +25,18 @@ class SemanticKITTIData {
              double free_resolution, double max_range,
              std::string map_topic)
       : nh_(nh)
+      , resolution_(resolution)
       , ds_resolution_(ds_resolution)
       , free_resolution_(free_resolution)
       , max_range_(max_range) {
         map_ = new la3dm::SemanticBGKOctoMap(resolution, block_depth, sf2, ell, num_class, free_thresh, occupied_thresh, var_thresh, 0.001, 0.001);
         m_pub_ = new la3dm::MarkerArrayPub(nh_, map_topic, 0.1f);
+	color_octomap_publisher_ = nh_.advertise<octomap_msgs::Octomap>("color_octomap_out", 10);
+      	init_trans_to_ground_ << 1, 0, 0, 0,
+                                 0, 0, 1, 0,
+                                 0,-1, 0, 1,
+                                 0, 0, 0, 1;
+      
       }
 
     bool read_lidar_poses(const std::string lidar_pose_name) {
@@ -64,32 +74,57 @@ class SemanticKITTIData {
         pcl::PointCloud<pcl::PointXYZL>::Ptr cloud = kitti2pcl(scan_name, label_name);
         Eigen::Matrix4d transform = lidar_poses_[scan_id];
         Eigen::Matrix4d calibration;
+        
+        // 00-02: 2011_10_03_drive
+        //calibration << 0.000427680238558, -0.999967248494602, -0.008084491683471, -0.011984599277133,
+	      //	      -0.007210626507497,  0.008081198471645, -0.999941316450383, -0.054039847297480,
+	      //	       0.999973864590328,  0.000485948581039, -0.007206933692422, -0.292196864868591,
+	      //	       0                ,  0                ,  0                ,  1.000000000000000;
+        
+        // 03: 2011_09_26_drive_0067
+        //calibration << 0.000234773698147, -0.999944154543764, -0.010563477811052, -0.002796816941295,
+        //               0.010449407416593,  0.010565353641379, -0.999889574117649, -0.075108791382965,
+        //               0.999945388562002,  0.000124365378387,  0.010451302995669, -0.272132796405873,
+        //               0                ,  0                ,  0                ,  1.000000000000000;
+
+        // 04-10: 2011_09_30_drive
         calibration <<  -0.001857739385241, -0.999965951350955, -0.008039975204516, -0.004784029760483,
                         -0.006481465826011,  0.008051860151134, -0.999946608177406, -0.073374294642306,
                          0.999977309828677, -0.001805528627661, -0.006496203536139, -0.333996806443304,
-                         0                ,  0                ,  0                ,  1.000000000000000;
-        Eigen::Matrix4d new_transform = transform * calibration;
+       	                 0                ,  0                ,  0                ,  1.000000000000000;
+	      
+        Eigen::Matrix4d new_transform = init_trans_to_ground_ * transform * calibration;
         pcl::transformPointCloud (*cloud, *cloud, new_transform);
         origin.x() = transform(0, 3);
         origin.y() = transform(1, 3);
         origin.z() = transform(2, 3);
         map_->insert_pointcloud(*cloud, origin, ds_resolution_, free_resolution_, max_range_);
         std::cout << "Inserted point cloud at " << scan_name << std::endl;
-        //publish_map();
-        for (int query_id = scan_id - 10; query_id >= 0 && query_id <= scan_id; ++query_id)
-          query_scan(input_data_dir, query_id);
+        if (scan_id == 2760)
+	  publish_map();
+        //for (int query_id = scan_id - 10; query_id >= 0 && query_id <= scan_id; ++query_id)
+          //query_scan(input_data_dir, query_id);
       }
       return 1;
     }
 
     void publish_map() {
+      octomap::ColorOcTree cmap(resolution_ + 0.05);
       for (auto it = map_->begin_leaf(); it != map_->end_leaf(); ++it) {
         if (it.get_node().get_state() == la3dm::State::OCCUPIED) {
           la3dm::point3f p = it.get_loc();
-          m_pub_->insert_point3d_semantics(p.x(), p.y(), p.z(), it.get_size(), it.get_node().get_semantics());
+          octomap::point3d endpoint(p.x(), p.y(), p.z());
+          octomap::ColorOcTreeNode* node = cmap.updateNode(endpoint, true);
+          std_msgs::ColorRGBA color = la3dm::SemanticKITTISemanticMapColor(it.get_node().get_semantics());
+          node->setColor(color.r*255, color.g*255, color.b*255);
         }
       }
-      m_pub_->publish();
+      octomap_msgs::Octomap cmap_msg;
+      cmap_msg.binary = 0;
+      cmap_msg.resolution = resolution_ + 0.05;
+      octomap_msgs::fullMapToMsg(cmap, cmap_msg);
+      cmap_msg.header.frame_id = "/map";
+      color_octomap_publisher_.publish(cmap_msg);
     }
 
     void set_up_evaluation(const std::string gt_label_dir, const std::string evaluation_result_dir) {
@@ -106,10 +141,25 @@ class SemanticKITTIData {
       pcl::PointCloud<pcl::PointXYZL>::Ptr cloud = kitti2pcl(scan_name, gt_name);
       Eigen::Matrix4d transform = lidar_poses_[scan_id];
       Eigen::Matrix4d calibration;
+      
+      // 00-02: 2011_10_03_drive
+      //calibration << 0.000427680238558, -0.999967248494602, -0.008084491683471, -0.011984599277133,
+      //	      -0.007210626507497,  0.008081198471645, -0.999941316450383, -0.054039847297480,
+      //	       0.999973864590328,  0.000485948581039, -0.007206933692422, -0.292196864868591,
+      //	       0                ,  0                ,  0                ,  1.000000000000000;
+      
+      // 03: 2011_09_26_drive_0067
+      //calibration << 0.000234773698147, -0.999944154543764, -0.010563477811052, -0.002796816941295,
+      //               0.010449407416593,  0.010565353641379, -0.999889574117649, -0.075108791382965,
+      //               0.999945388562002,  0.000124365378387,  0.010451302995669, -0.272132796405873,
+      //               0                ,  0                ,  0                ,  1.000000000000000;
+
+      // 04-10: 2011_09_30_drive
       calibration <<  -0.001857739385241, -0.999965951350955, -0.008039975204516, -0.004784029760483,
                       -0.006481465826011,  0.008051860151134, -0.999946608177406, -0.073374294642306,
                        0.999977309828677, -0.001805528627661, -0.006496203536139, -0.333996806443304,
                        0                ,  0                ,  0                ,  1.000000000000000;
+      
       Eigen::Matrix4d new_transform = transform * calibration;
       pcl::transformPointCloud (*cloud, *cloud, new_transform);
 
@@ -128,16 +178,19 @@ class SemanticKITTIData {
   
   private:
     ros::NodeHandle nh_;
+    double resolution_;
     double ds_resolution_;
     double free_resolution_;
     double max_range_;
     la3dm::SemanticBGKOctoMap* map_;
     la3dm::MarkerArrayPub* m_pub_;
+    ros::Publisher color_octomap_publisher_;
     tf::TransformListener listener_;
     std::ofstream pose_file_;
     std::vector<Eigen::Matrix4d> lidar_poses_;
     std::string gt_label_dir_;
     std::string evaluation_result_dir_;
+    Eigen::Matrix4d init_trans_to_ground_;
 
     int check_element_in_vector(const long long element, const std::vector<long long>& vec_check) {
       for (int i = 0; i < vec_check.size(); ++i)
