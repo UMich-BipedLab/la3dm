@@ -110,8 +110,8 @@ namespace la3dm {
             assert(trained == true);
 	        MatrixKType Ks;
           
-          //covSparse(xs, x, Ks);
-          covCountingSensorModel(xs, x, Ks);
+          covSparse(xs, x, Ks);
+          //covCountingSensorModel(xs, x, Ks);
 
           abar = (Ks * y).array();
           MatrixYType ones = MatrixYType::Ones(y.rows(), 1);
