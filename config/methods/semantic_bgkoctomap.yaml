@@ -11,12 +11,12 @@ ell: 0.3 # Length scale of the sparse kernel
 
 # Sampling resolutions
 free_resolution: 100.0 # Free space sampling resolution (0.5)
-ds_resolution: 0.2 # Downsampling factor
+ds_resolution: 0.1 # Downsampling factor
 
 # Free/Occupied Thresholds
-#free_thresh: 0.4588235294117647
-#occupied_thresh: 0.5294117647058824
-occupied_thresh: 0.7
+free_thresh: 0.4588235294117647
+occupied_thresh: 0.5294117647058824
+#occupied_thresh: 0.7
 var_thresh: 0.09 # Threshold on variance to distinguish known/unknown
 
 # BGK Inference positive and negative class prior pseudocounts

@@ -82,12 +82,13 @@ class CassieData {
       origin.y() = t_eigen.matrix()(1, 3);
       origin.z() = t_eigen.matrix()(2, 3);
       map_->insert_pointcloud(cloud, origin, ds_resolution_, free_resolution_, max_range_);
-      if (counter_ == 1) {
+      if (counter_ > 1138) {
+      //if (counter_ == 1) {  
+        //counter_ = 0;
         publish_map();
-        counter_ = 0;
       } else
         counter_++; 
-      std::cout << "Inserted point cloud at " << cloud_msg_time <<std::endl;
+      std::cout << "Inserted point cloud at " << counter_ <<std::endl;
     }
 
     void publish_map() {
@@ -99,7 +100,12 @@ class CassieData {
           //m_pub_->insert_point3d_semantics(p.x(), p.y(), p.z(), it.get_size(), it.get_node().get_semantics());
           octomap::point3d endpoint(p.x(), p.y(), p.z());
           octomap::ColorOcTreeNode* n = octomap->updateNode(endpoint, true);
-          std_msgs::ColorRGBA color = la3dm::NCLTSemanticMapColor(it.get_node().get_semantics());
+          
+          int semantics = it.get_node().get_semantics();
+          std::vector<float> vars = it.get_node().get_vars();
+          float var = (vars[semantics] - 0.045) / 0.045;
+          //std_msgs::ColorRGBA color = la3dm::NCLTSemanticMapColor(it.get_node().get_semantics());
+          std_msgs::ColorRGBA color = la3dm::JetMapColor(var);
           n->setColor(color.r*255, color.g*255, color.b*255);
           //octomap->setNodeColor(p.x(), p.y(), p.z(), 1, 0, 0);
         }
@@ -110,7 +116,6 @@ class CassieData {
       octomap_msgs::fullMapToMsg(*octomap, cmap_msg);
       cmap_msg.header.frame_id = "/map";
       color_octomap_publisher_.publish(cmap_msg);
-
       //m_pub_->publish();
     }
 
